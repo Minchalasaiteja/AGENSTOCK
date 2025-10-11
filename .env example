@@ -1,16 +1,16 @@
 # Database
-MONGODB_URL=mongodb+srv://saitejaminchala643:Prajwal1608@cluster1.2u2cmdn.mongodb.net/?retryWrites=true&w=majority&appName=Cluster1
-DATABASE_NAME=stock_research
+MONGODB_URL=
+DATABASE_NAME=
 
 # JWT & Security
-SECRET_KEY=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855
-ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=60
+SECRET_KEY=
+ALGORITHM=
+ACCESS_TOKEN_EXPIRE_MINUTES=
 
 # Admin Credentials
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-ADMIN_EMAIL=admin@agenstock.com
+ADMIN_USERNAME=
+ADMIN_PASSWORD=
+ADMIN_EMAIL=
 
 # Gemini API Keys (Rotation)
 GEMINI_API_KEY_1=
