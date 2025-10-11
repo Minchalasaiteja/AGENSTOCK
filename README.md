@@ -2,6 +2,10 @@
 
 Version: 1.0.0
 
+## Introduction
+
+AGENSTOCK is a conversational AI-driven stock research application built with FastAPI and Jinja2 templates. It aggregates market and fundamental data, computes technical indicators, synthesizes insights with LLMs, and produces interactive charts and printable PDF research reports.
+
 
 # AGENSTOCK — AI Stock Research Agent
 
@@ -31,9 +35,6 @@ Key features (user-facing)
 
 ---
 
-## Introduction
-
-AGENSTOCK is a conversational AI-driven stock research application built with FastAPI and Jinja2 templates. It aggregates market and fundamental data, computes technical indicators, synthesizes insights with LLMs, and produces interactive charts and printable PDF research reports.
 
 
 
