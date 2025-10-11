@@ -32,7 +32,7 @@ This README contains a full reference for developers: features, file maps, modul
 - Persisted chart zoom/pan state (localStorage)
 - In-memory TTL cache for heavy enhanced research payloads
 
-## Folder skeleton (detailed)
+## Folder skeleton 
 
 ```
 app/
@@ -73,7 +73,7 @@ README.md
 
 > Tip: run `rg "def " app/services | sed -n '1,200p'` locally to list functions if you want an automated map.
 
-## Main imports and why they are used
+## Main imports and usage
 
 - `fastapi` — lightweight async web framework with automatic OpenAPI.
 - `uvicorn` — ASGI server for production/development.
@@ -175,7 +175,7 @@ pip install -r requirements.txt
 ```cmd
 set ALPHAVANTAGE_KEY_1=your_key_here
 set ENHANCED_CACHE_TTL=60
-set DATABASE_URL=sqlite:///./data.db
+set DATABASE_URL=
 ```
 
 4) Run the app
@@ -218,13 +218,3 @@ Expected partial payload:
 - Add unit tests for `stock_service` (happy-path + edge cases) and `pdf_generator`
 - Add integration tests using Playwright to automatically capture screenshots and test UI flows
 - Add role-based feature toggles and per-user preferences persisted in DB
-
----
-
-If you want, I can now:
-
-- Scan the repository and auto-generate a per-file function table and add it to this README.
-- Run the screenshot script here (I attempted earlier but environment restrictions blocked installs). I can provide exact terminal commands to run locally.
-- Convert ASCII diagrams into PNG/SVG images and add them to `docs/diagrams/` (I have already added a few SVGs).
-
-Tell me which of the above follow-ups you'd like me to run next.
