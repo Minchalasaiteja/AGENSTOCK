@@ -1,0 +1,46 @@
+Backend (data for charts)
+
+get_enhanced_research now returns:
+chart_series (date + close) — existing
+ohlc (date, open, high, low, close, volume) suitable for candlesticks (last 365 days when available)
+indicators (SMA20, SMA50, RSI14)
+macd and macd_signal (date → numeric) for MACD plotting
+These are computed from the historical DataFrame when available (yfinance/AlphaVantage/indstocks fallbacks).
+Frontend (interactive visuals)
+
+enhanced_research.html:
+Loads Plotly (CDN).
+New flow: first fetch /api/research/enhanced (fast) and render visuals immediately. Then fetch /api/research/enhanced-report (LLM) to populate the text sections.
+Visual Analytics now renders multiple dynamic charts:
+Plotly interactive candlestick + volume (with SMA overlays).
+Plotly MACD subplot.
+Plotly RSI subplot.
+A 15-second polling loop refreshes the visuals by re-requesting /api/research/enhanced so the charts update near-real-time.
+Download button still calls /api/research/enhanced-report-pdf which embeds charts into the PDF (backend uses Plotly/mplfinance to create PNGs).
+PDF generation
+
+pdf_generator.py embeds the charts returned by the report service (PNG bytes) and also attempts mplfinance candlestick + BB + MACD + RSI visuals if historical data is available
+
+charts in both UI and PDF
+
+The UI uses the new ohlc, indicators, macd keys returned by get_enhanced_research to render Plotly candlestick + MACD + RSI immediately in the Visual Analytics tab. The UI polling keeps them updated.
+The PDF route receives the chart images from the report service and embeds them into the generated PDF.
+
+
+
+Real real-time streaming (instead of 15s polling) via WebSocket:
+Wire server to push updates to the frontend (true tick-level updates); I can implement a per-user websocket feed and a small client streamer for the candlestick (requires more infra and careful rate-limiting).
+Add toggles & controls in the Visual Analytics tab:
+Switch indicators on/off, change MA windows, zoom/pan state persistence, export chart as PNG.
+Improve PDF layout and add captions/TOC:
+Two-column layout, high-res charts, captions under each chart, and a table-of-contents with bookmarks.
+Add server-side cache for get_enhanced_research results to avoid repeated heavy requests (TTL-based cache).
+Add unit tests for get_enhanced_research (happy path + no-data fallbacks).
+
+
+
+
+1.
+Real real-time streaming (instead of 15s polling) via WebSocket:
+Wire server to push updates to the frontend (true tick-level updates); I can implement a per-user websocket feed and a small client streamer for the candlestick (requires more infra and careful rate-limiting).
+

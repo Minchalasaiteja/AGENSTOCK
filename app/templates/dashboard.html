@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - AGENSTOCK{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="welcome-section">
+        <h1>Welcome back, <span id="userName">{{ user.username }}</span>! 👋</h1>
+        <p>Ready to research your next investment?</p>
+        <form id="logoutForm" method="post" action="/api/auth/logout" style="display:inline; margin-top:1rem;">
+            <button type="submit" class="btn btn-danger">Logout</button>
+        </form>
+        <script>
+        document.getElementById('logoutForm').onsubmit = async function(e) {
+            e.preventDefault();
+            await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+            window.location.href = '/login';
+        };
+        </script>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="portfolioValue">$0.00</h3>
+                <p>Portfolio Value</p>
+            </div>
+            <div class="stat-change positive" id="portfolioChange">
+                +0.0%
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="totalPnL">$0.00</h3>
+                <p>Total P&L</p>
+            </div>
+            <div class="stat-change positive" id="pnlChange">
+                +0.0%
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-robot"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="researchCount">0</h3>
+                <p>Research Sessions</p>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="stat-info">
+                <h3 id="watchlistCount">0</h3>
+                <p>Watchlist Items</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="actions-section">
+        <h2>Quick Actions</h2>
+        <div class="actions-grid">
+            <a href="/research" class="action-card" data-action="research">
+                <div class="action-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Stock Research</h3>
+                <p>AI-powered analysis for any stock</p>
+            </a>
+            <!-- Enhanced Research card inserted after Stock Research -->
+            <a href="/enhanced-research" class="action-card" data-action="enhanced-research">
+                <div class="action-icon">
+                    <i class="fas fa-brain"></i>
+                </div>
+                <h3>Enhanced Research</h3>
+                <p>Deeper, multi-source research reports</p>
+            </a>
+            <a href="/portfolio" class="action-card">
+                <!-- ensure existing cards have data-action attributes -->
+                <div class="action-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <h3>Portfolio</h3>
+                <p>Manage your investments</p>
+            </a>
+            <a href="/chat" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h3>AI Chat</h3>
+                <p>Conversational stock analysis</p>
+            </a>
+            <a href="/compare" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <h3>Compare Stocks</h3>
+                <p>Side-by-side analysis</p>
+            </a>
+            <a href="/profile" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3>Profile</h3>
+                <p>View and edit your profile</p>
+            </a>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="activity-section">
+        <div class="section-header">
+            <h2>Recent Activity</h2>
+            <!-- Link to full chat history page -->
+            <a class="view-all" href="/chats">View All</a>
+        </div>
+        <div class="activity-list" id="recentActivity">
+            <!-- Recent chats will be loaded here -->
+            <div class="loading">Loading recent activity...</div>
+        </div>
+    </div>
+
+    <!-- All Activity Modal -->
+    <div class="modal-overlay" id="allActivityModal" style="display:none;">
+        <div class="modal-content large">
+            <div class="modal-header">
+                <h3>All Recent Activity</h3>
+                <button class="modal-close" onclick="hideAllActivityModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body" id="allActivityContent">
+                <!-- All recent chats will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+
+<script src="/static/js/dashboard.js"></script>
+<script>
+// Expose current user id for websocket connection
+window.currentUserId = '{{ user._id if user else "" }}';
+// Load dashboard data
+document.addEventListener('DOMContentLoaded', function() {
+    loadDashboardData();
+});
+
+async function loadDashboardData() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/users/dashboard-data', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            updateDashboard(data);
+        }
+    } catch (error) {
+        console.error('Failed to load dashboard data:', error);
+    }
+}
+
+function updateDashboard(data) {
+    // Update portfolio stats
+    if (data.portfolio_summary) {
+        document.getElementById('portfolioValue').textContent = `$${data.portfolio_summary.total_value.toLocaleString()}`;
+        document.getElementById('totalPnL').textContent = `$${data.portfolio_summary.total_pnl.toLocaleString()}`;
+        
+        // Calculate percentage change (simplified)
+        const changePercent = data.portfolio_summary.daily_change > 0 ? 
+            `+${data.portfolio_summary.daily_change}%` : 
+            `${data.portfolio_summary.daily_change}%`;
+        
+        document.getElementById('portfolioChange').textContent = changePercent;
+        document.getElementById('portfolioChange').className = `stat-change ${data.portfolio_summary.daily_change >= 0 ? 'positive' : 'negative'}`;
+    }
+    
+    // Update research count
+    if (data.recent_chats) {
+        document.getElementById('researchCount').textContent = data.recent_chats.length;
+        updateRecentActivity(data.recent_chats);
+    }
+    
+    // Update watchlist count
+    if (data.watchlist) {
+        document.getElementById('watchlistCount').textContent = data.watchlist.length;
+    }
+}
+
+function updateRecentActivity(chats) {
+    const activityList = document.getElementById('recentActivity');
+    
+    if (chats.length === 0) {
+        activityList.innerHTML = '<div class="no-activity">No recent activity</div>';
+        return;
+    }
+    
+    activityList.innerHTML = chats.map(chat => `
+        <div class="activity-item">
+            <div class="activity-icon">
+                <i class="fas fa-comment"></i>
+            </div>
+            <div class="activity-content">
+                <h4>${chat.title}</h4>
+                <p>${new Date(chat.updated_at).toLocaleDateString()}</p>
+            </div>
+            <div class="activity-message-count">
+                ${chat.message_count} messages
+            </div>
+        </div>
+    `).join('');
+}
+
+// Show all activity modal
+async function showAllActivityModal() {
+    const modal = document.getElementById('allActivityModal');
+    const content = document.getElementById('allActivityContent');
+    modal.style.display = 'flex';
+    content.innerHTML = '<div class="loading">Loading all activity...</div>';
+
+    try {
+        const token = localStorage.getItem('access_token');
+        const resp = await fetch('/api/chat/sessions', { headers: { 'Authorization': `Bearer ${token}` } });
+        if (!resp.ok) {
+            content.innerHTML = '<div class="error">Failed to load activity</div>';
+            return;
+        }
+        const sessions = await resp.json();
+        content.innerHTML = sessions.map(s => `
+            <div class="activity-item" onclick="openChatSession('${s._id}')">
+                <div class="activity-icon"><i class="fas fa-comment"></i></div>
+                <div class="activity-content">
+                    <h4>${s.title}</h4>
+                    <p>${new Date(s.updated_at).toLocaleString()}</p>
+                </div>
+                <div class="activity-message-count">${s.message_count || 0} messages</div>
+            </div>
+        `).join('');
+    } catch (err) {
+        console.error('Failed to load all activity', err);
+        content.innerHTML = '<div class="error">Failed to load activity</div>';
+    }
+}
+
+function hideAllActivityModal() {
+    const modal = document.getElementById('allActivityModal');
+    modal.style.display = 'none';
+}
+
+// Open a specific chat session in the full chats page
+function openChatSession(sessionId){
+    hideAllActivityModal();
+    if(!sessionId) return window.location.href = '/chats';
+    window.location.href = `/chats/${sessionId}`;
+}
+</script>
+{% endblock %}

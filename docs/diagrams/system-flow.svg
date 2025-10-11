@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="180" viewBox="0 0 800 180">
+  <style>
+    .box{fill:#ffffff;stroke:#e6eefc;rx:8px}
+    .label{fill:#0b1220;font-family:Arial;font-size:12px;text-anchor:middle}
+    .arrow{stroke:#3a86ff;stroke-width:2;fill:none}
+  </style>
+  <rect x="20" y="20" width="160" height="48" rx="8" fill="#fff" stroke="#e6eefc"/>
+  <text x="100" y="50" class="label">Data Sources</text>
+  <rect x="240" y="20" width="160" height="48" rx="8" fill="#fff" stroke="#e6eefc"/>
+  <text x="320" y="50" class="label">Normalization & Indicators</text>
+  <rect x="460" y="20" width="160" height="48" rx="8" fill="#fff" stroke="#e6eefc"/>
+  <text x="540" y="50" class="label">AI Summarization</text>
+  <rect x="620" y="100" width="140" height="48" rx="8" fill="#fff" stroke="#e6eefc"/>
+  <text x="690" y="130" class="label">PDF Reports</text>
+  <path d="M180 44 L240 44" class="arrow" marker-end="url(#a)"/>
+  <path d="M400 44 L460 44" class="arrow" marker-end="url(#a)"/>
+  <path d="M540 66 L690 100" class="arrow" marker-end="url(#a)"/>
+  <defs>
+    <marker id="a" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#3a86ff" />
+    </marker>
+  </defs>
+</svg>

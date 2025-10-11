@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Chats - AGENSTOCK{% endblock %}
+{% block content %}
+<div class="container" style="padding:6rem 2rem 4rem;"> <!-- add top padding to avoid header overlap -->
+    <div style="display:flex; gap:2rem; align-items:flex-start;">
+        <div style="flex:1; max-width:360px;">
+            <h3>Your Conversations</h3>
+            <div id="sessionsList" style="background:white; padding:1rem; border-radius:12px; box-shadow:var(--box-shadow);">
+                <p id="noSessions" style="color:var(--gray-color);">Loading...</p>
+            </div>
+        </div>
+        <div style="flex:2;">
+            <h3>Conversation</h3>
+            <div id="conversationArea" style="background:white; padding:1rem; border-radius:12px; box-shadow:var(--box-shadow); min-height:400px; overflow:auto; display:flex; flex-direction:column; gap:0.5rem;">
+                <p id="noConversation" style="color:var(--gray-color);">Select a conversation to view messages.</p>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="/static/js/chats.js"></script>
+{% endblock %}

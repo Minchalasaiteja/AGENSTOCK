@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AGENSTOCK - AI Stock Research{% endblock %}</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="/static/css/dashboard.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    {% if request.url.path == '/' %}
+    <!-- Landing page has different background -->
+    <div class="particles-background" id="particles-js"></div>
+    {% else %}
+    <!-- App pages have solid background -->
+    <div class="app-background"></div>
+    {% endif %}
+
+    {% block navbar %}
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-chart-line"></i>
+                AGENSTOCK
+            </div>
+            {% if request.url.path != '/' %}
+            <button id="backBtn" class="btn back-btn" title="Go back" style="margin-left:10px;">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            {% endif %}
+            <div class="nav-menu">
+                {% if user %}
+                    <span class="user-welcome">Welcome, {{ user.username }}</span>
+                    <a href="/dashboard" class="nav-link">Dashboard</a>
+                    <a href="/research" class="nav-link">Research</a>
+                    <a href="/enhanced-research" class="nav-link">Enhanced Research</a>
+                    <a href="/api/auth/logout" class="nav-link">Logout</a>
+                {% else %}
+                    <a href="/" class="nav-link">Home</a>
+                    <a href="/about" class="nav-link">About</a>
+                    <a href="/login" class="nav-link">Login</a>
+                    <a href="/signup" class="nav-link signup-btn">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-chart-line"></i>
+                    AGENSTOCK
+                </div>
+                <p>AI-Powered Stock Research Platform</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+    {% endblock %}
+
+    <script src="/static/js/main.js"></script>
+    <script>
+    // Back button handler for base nav
+    document.addEventListener('DOMContentLoaded', function(){
+        const backBtn = document.getElementById('backBtn');
+        if(backBtn) backBtn.addEventListener('click', function(e){ e.preventDefault(); window.history.back(); });
+    });
+    </script>
+    {% if request.url.path == '/' %}
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    {% endif %}
+    {% block scripts %}{% endblock %}
+</body>
+</html>

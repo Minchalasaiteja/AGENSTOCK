@@ -1,0 +1,703 @@
+
+.{% extends "base.html" %}
+
+{% block title %}User Management - AGENSTOCK Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>User Management</h1>
+        <p>Manage user accounts and permissions</p>
+    </div>
+
+    <!-- Users Table -->
+    <div class="users-section">
+        <div class="section-header">
+            <h2>All Users</h2>
+            <div class="header-actions">
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="Search users...">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="users-table-container">
+            <table class="users-table" id="usersTable">
+                <thead>
+                    <tr>
+                        <th>Si.No</th>
+                        <th>Username</th>
+                        <th>Full Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Joined</th>
+                        <th>Last Login</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTableBody">
+                    <!-- Users will be populated here -->
+                </tbody>
+            </table>
+            <div class="loading" id="usersLoading">Loading users...</div>
+            <div class="no-users" id="noUsers" style="display: none;">
+                <i class="fas fa-users"></i>
+                <h3>No Users Found</h3>
+                <p>There are no users in the system yet.</p>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div class="pagination" id="pagination" style="display: none;">
+            <button class="btn btn-secondary" id="prevPage">Previous</button>
+            <span class="page-info" id="pageInfo">Page 1 of 1</span>
+            <button class="btn btn-secondary" id="nextPage">Next</button>
+        </div>
+    </div>
+
+    <!-- User Statistics -->
+    <div class="user-stats">
+        <h2>User Statistics</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalUsersCount">0</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="activeUsersCount">0</h3>
+                    <p>Active Users</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="newUsersToday">0</h3>
+                    <p>New Today</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="avgSessions">0</h3>
+                    <p>Avg. Sessions/User</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div class="modal-overlay" id="userDetailsModal" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>User Details</h3>
+            <button class="modal-close" onclick="hideUserDetailsModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body" id="userDetailsContent">
+            <!-- User details will be populated here -->
+        </div>
+    </div>
+</div>
+
+<script>
+let allUsers = [];
+let currentPage = 1;
+const usersPerPage = 10;
+
+document.addEventListener('DOMContentLoaded', function() {
+    loadUsers();
+    setupEventListeners();
+});
+
+async function loadUsers() {
+    try {
+        showLoading(true);
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/admin/users/list', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            allUsers = await response.json();
+            displayUsers();
+            updateUserStats();
+        } else {
+            throw new Error('Failed to load users');
+        }
+    } catch (error) {
+        console.error('Failed to load users:', error);
+        AGENSTOCK.showNotification('Failed to load users', 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
+function displayUsers() {
+    const tableBody = document.getElementById('usersTableBody');
+    const noUsers = document.getElementById('noUsers');
+    const pagination = document.getElementById('pagination');
+    
+    let filteredUsers = allUsers;
+    const searchTerm = document.getElementById('userSearch').value.trim().toLowerCase();
+
+    if (searchTerm) {
+        filteredUsers = allUsers.filter(user => 
+            user.username.toLowerCase().includes(searchTerm) ||
+            user.email.toLowerCase().includes(searchTerm) ||
+            (user.full_name && user.full_name.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filteredUsers.length === 0) {
+        tableBody.innerHTML = '';
+        noUsers.style.display = 'block';
+        pagination.style.display = 'none';
+        return;
+    }
+
+    noUsers.style.display = 'none';
+
+    // Calculate pagination
+    const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
+    const startIndex = (currentPage - 1) * usersPerPage;
+    const endIndex = startIndex + usersPerPage;
+    const usersToShow = filteredUsers.slice(startIndex, endIndex);
+
+    tableBody.innerHTML = usersToShow.map(user => `
+        <tr>
+            <td>${user.si_no}</td>
+            <td>${escapeHtml(user.username)}</td>
+            <td>${escapeHtml(user.full_name || 'No name')}</td>
+            <td>${escapeHtml(user.email)}</td>
+            <td><span class="role-badge ${user.role}">${user.role}</span></td>
+            <td><span class="status-badge ${user.is_active ? 'active' : 'inactive'}">${user.is_active ? 'Active' : 'Inactive'}</span></td>
+            <td>${formatDate(user.created_at)}</td>
+            <td>${user.last_login ? formatDate(user.last_login) : 'Never'}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn btn-info btn-sm" onclick="viewUserDetails('${user._id}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-warning btn-sm" onclick="toggleUserStatus('${user._id}', ${user.is_active})">
+                        <i class="fas ${user.is_active ? 'fa-user-slash' : 'fa-user-check'}"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+
+    // Update pagination
+    updatePagination(totalPages);
+}
+
+function updatePagination(totalPages) {
+    const pagination = document.getElementById('pagination');
+    const pageInfo = document.getElementById('pageInfo');
+    const prevBtn = document.getElementById('prevPage');
+    const nextBtn = document.getElementById('nextPage');
+    
+    if (totalPages > 1) {
+        pagination.style.display = 'flex';
+        pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+        
+        prevBtn.disabled = currentPage === 1;
+        nextBtn.disabled = currentPage === totalPages;
+    } else {
+        pagination.style.display = 'none';
+    }
+}
+
+function updateUserStats() {
+    const totalUsers = allUsers.length;
+    const activeUsers = allUsers.filter(user => user.is_active).length;
+    const newUsersToday = allUsers.filter(user => {
+        const created = new Date(user.created_at);
+        const today = new Date();
+        return created.toDateString() === today.toDateString();
+    }).length;
+    
+    document.getElementById('totalUsersCount').textContent = totalUsers;
+    document.getElementById('activeUsersCount').textContent = activeUsers;
+    document.getElementById('newUsersToday').textContent = newUsersToday;
+    document.getElementById('avgSessions').textContent = '2.5'; // This would come from analytics
+}
+
+function setupEventListeners() {
+    // Search functionality
+    document.getElementById('userSearch').addEventListener('input', debounce(function() {
+        currentPage = 1;
+        displayUsers();
+    }, 300));
+
+    // Pagination
+    document.getElementById('prevPage').addEventListener('click', function() {
+        if (currentPage > 1) {
+            currentPage--;
+            displayUsers();
+        }
+    });
+
+    document.getElementById('nextPage').addEventListener('click', function() {
+        const totalPages = Math.ceil(allUsers.length / usersPerPage);
+        if (currentPage < totalPages) {
+            currentPage++;
+            displayUsers();
+        }
+    });
+}
+
+async function viewUserDetails(userId) {
+    try {
+        const user = allUsers.find(u => u._id === userId);
+        if (!user) return;
+        
+        const modalContent = document.getElementById('userDetailsContent');
+        modalContent.innerHTML = `
+            <div class="user-details">
+                <div class="detail-section">
+                    <h4>Basic Information</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Username:</label>
+                            <span>${escapeHtml(user.username)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email:</label>
+                            <span>${escapeHtml(user.email)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Full Name:</label>
+                            <span>${escapeHtml(user.full_name || 'Not provided')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Role:</label>
+                            <span class="role-badge ${user.role}">${user.role}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>Account Status</h4>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <label>Status:</label>
+                            <span class="status-badge ${user.is_active ? 'active' : 'inactive'}">
+                                ${user.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Email Verified:</label>
+                            <span class="status-badge ${user.email_verified ? 'active' : 'inactive'}">
+                                ${user.email_verified ? 'Verified' : 'Not Verified'}
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Member Since:</label>
+                            <span>${formatDate(user.created_at)}</span>
+                        </div>
+                        <div class="detail-item">
+                            <label>Last Login:</label>
+                            <span>${user.last_login ? formatDate(user.last_login) : 'Never'}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="detail-section">
+                    <h4>Recent Activity</h4>
+                    <div class="activity-list">
+                        <div class="activity-item">
+                            <i class="fas fa-comment"></i>
+                            <span>Chat sessions: 12</span>
+                        </div>
+                        <div class="activity-item">
+                            <i class="fas fa-chart-pie"></i>
+                            <span>Portfolio updates: 5</span>
+                        </div>
+                        <div class="activity-item">
+                            <i class="fas fa-file-pdf"></i>
+                            <span>Research reports: 8</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.getElementById('userDetailsModal').style.display = 'flex';
+        
+    } catch (error) {
+        console.error('Failed to load user details:', error);
+        AGENSTOCK.showNotification('Failed to load user details', 'error');
+    }
+}
+
+async function toggleUserStatus(userId, currentStatus) {
+    const action = currentStatus ? 'deactivate' : 'activate';
+    const confirmMessage = `Are you sure you want to ${action} this user?`;
+    
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`/api/admin/users/${userId}/toggle-active`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            AGENSTOCK.showNotification(`User ${action}d successfully`, 'success');
+            loadUsers(); // Reload users
+        } else {
+            throw new Error('Failed to update user status');
+        }
+    } catch (error) {
+        console.error('Failed to toggle user status:', error);
+        AGENSTOCK.showNotification('Failed to update user status', 'error');
+    }
+}
+
+function hideUserDetailsModal() {
+    document.getElementById('userDetailsModal').style.display = 'none';
+}
+
+function showLoading(show) {
+    const loading = document.getElementById('usersLoading');
+    loading.style.display = show ? 'block' : 'none';
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+</script>
+
+<style>
+.admin-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.users-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.search-box {
+    position: relative;
+}
+
+.search-box input {
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: 20px;
+    width: 250px;
+}
+
+.search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--gray-color);
+}
+
+.users-table-container {
+    overflow-x: auto;
+    position: relative;
+    min-height: 200px;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.users-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.user-cell {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+}
+
+.user-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.user-info strong {
+    color: var(--dark-color);
+}
+
+.user-info span {
+    font-size: 0.8rem;
+    color: var(--gray-color);
+}
+
+.role-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.role-badge.admin {
+    background: var(--primary-color);
+    color: white;
+}
+
+.role-badge.user {
+    background: #e9ecef;
+    color: var(--dark-color);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: var(--success-color);
+    color: white;
+}
+
+.status-badge.inactive {
+    background: var(--danger-color);
+    color: white;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.btn-info {
+    background: var(--primary-color);
+    color: white;
+}
+
+.btn-warning {
+    background: var(--warning-color);
+    color: white;
+}
+
+.loading, .no-users {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-color);
+}
+
+.no-users i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.page-info {
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.user-stats {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.stat-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    color: var(--dark-color);
+}
+
+.stat-info p {
+    color: var(--gray-color);
+    margin: 0;
+}
+
+.modal-content.large {
+    max-width: 600px;
+}
+
+.user-details {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.detail-section h4 {
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 0.5rem;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.detail-item label {
+    font-weight: 600;
+    color: var(--gray-color);
+    font-size: 0.9rem;
+}
+
+.activity-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.activity-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #f8f9fa;
+    border-radius: 4px;
+}
+</style>
+{% endblock %}

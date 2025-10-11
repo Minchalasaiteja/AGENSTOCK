@@ -1,0 +1,697 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - AGENSTOCK Admin{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>Analytics Dashboard</h1>
+        <p>Monitor application usage and performance</p>
+    </div>
+
+    <!-- Analytics Overview -->
+    <div class="analytics-overview">
+        <div class="overview-stats">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalUsers">0</h3>
+                    <p>Total Users</p>
+                </div>
+                <div class="stat-change" id="userChange">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>0%</span>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="totalChats">0</h3>
+                    <p>Chat Sessions</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-chart-pie"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="activePortfolios">0</h3>
+                    <p>Active Portfolios</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="fas fa-robot"></i>
+                </div>
+                <div class="stat-info">
+                    <h3 id="apiCalls">0</h3>
+                    <p>API Calls Today</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Section -->
+    <div class="charts-section">
+        <div class="chart-row">
+            <div class="chart-card">
+                <h3>User Registrations</h3>
+                <div class="chart-container">
+                    <canvas id="registrationChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>Daily Active Users</h3>
+                <div class="chart-container">
+                    <canvas id="activeUsersChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-row">
+            <div class="chart-card">
+                <h3>Chat Activity</h3>
+                <div class="chart-container">
+                    <canvas id="chatActivityChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="chart-card">
+                <h3>Feature Usage</h3>
+                <div class="chart-container">
+                    <canvas id="featureUsageChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detailed Analytics -->
+    <div class="detailed-analytics">
+        <div class="analytics-tabs">
+            <button class="tab-button active" onclick="openTab('userAnalytics')">User Analytics</button>
+            <button class="tab-button" onclick="openTab('chatAnalytics')">Chat Analytics</button>
+            <button class="tab-button" onclick="openTab('systemAnalytics')">System Analytics</button>
+        </div>
+
+        <div id="userAnalytics" class="tab-content active">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>User Growth</h4>
+                    <div class="metric-value" id="userGrowth">0%</div>
+                    <p>Monthly user growth rate</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Active Rate</h4>
+                    <div class="metric-value" id="activeRate">0%</div>
+                    <p>Percentage of active users</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Retention</h4>
+                    <div class="metric-value" id="retentionRate">0%</div>
+                    <p>7-day user retention</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Avg. Sessions</h4>
+                    <div class="metric-value" id="avgSessions">0</div>
+                    <p>Sessions per active user</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="chatAnalytics" class="tab-content">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>Total Messages</h4>
+                    <div class="metric-value" id="totalMessages">0</div>
+                    <p>All-time chat messages</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Avg. Session Length</h4>
+                    <div class="metric-value" id="avgSessionLength">0m</div>
+                    <p>Average chat duration</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Popular Stocks</h4>
+                    <div class="metric-value" id="popularStocks">AAPL</div>
+                    <p>Most researched stocks</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>AI Response Time</h4>
+                    <div class="metric-value" id="responseTime">0s</div>
+                    <p>Average AI response time</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="systemAnalytics" class="tab-content">
+            <div class="analytics-grid">
+                <div class="analytics-card">
+                    <h4>API Success Rate</h4>
+                    <div class="metric-value" id="apiSuccessRate">100%</div>
+                    <p>External API reliability</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>System Uptime</h4>
+                    <div class="metric-value" id="systemUptime">100%</div>
+                    <p>Application availability</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Avg. Response Time</h4>
+                    <div class="metric-value" id="systemResponseTime">0ms</div>
+                    <p>Server response time</p>
+                </div>
+                
+                <div class="analytics-card">
+                    <h4>Error Rate</h4>
+                    <div class="metric-value" id="errorRate">0%</div>
+                    <p>Application error rate</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadAnalyticsData();
+    initializeCharts();
+});
+
+async function loadAnalyticsData() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const [analyticsResponse, chartsResponse] = await Promise.all([
+            fetch('/api/admin/analytics/data', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            }),
+            fetch('/api/admin/analytics/charts', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+        ]);
+
+        if (analyticsResponse.ok && chartsResponse.ok) {
+            const analyticsData = await analyticsResponse.json();
+            const chartsData = await chartsResponse.json();
+            
+            updateAnalyticsOverview(analyticsData);
+            updateDetailedAnalytics(analyticsData);
+            updateCharts(chartsData);
+        } else {
+            throw new Error('Failed to load analytics data');
+        }
+    } catch (error) {
+        console.error('Failed to load analytics:', error);
+        AGENSTOCK.showNotification('Failed to load analytics data', 'error');
+        loadSampleData();
+    }
+}
+
+function updateAnalyticsOverview(data) {
+    document.getElementById('totalUsers').textContent = data.user_metrics.total_users;
+    document.getElementById('totalChats').textContent = data.chat_metrics.total_chats;
+    document.getElementById('activePortfolios').textContent = data.portfolio_metrics.total_portfolios;
+    
+    // Calculate user change
+    const newUsers = data.user_metrics.new_users_today;
+    const totalUsers = data.user_metrics.total_users;
+    const userChange = totalUsers > 0 ? (newUsers / totalUsers * 100).toFixed(1) : 0;
+    
+    const userChangeElement = document.getElementById('userChange');
+    userChangeElement.innerHTML = `
+        <i class="fas fa-arrow-up"></i>
+        <span>${userChange}%</span>
+    `;
+}
+
+function updateDetailedAnalytics(data) {
+    // User Analytics
+    document.getElementById('userGrowth').textContent = '12.5%';
+    document.getElementById('activeRate').textContent = '68%';
+    document.getElementById('retentionRate').textContent = '45%';
+    document.getElementById('avgSessions').textContent = '3.2';
+    
+    // Chat Analytics
+    document.getElementById('totalMessages').textContent = data.chat_metrics.total_messages;
+    document.getElementById('avgSessionLength').textContent = '8m';
+    document.getElementById('popularStocks').textContent = 'AAPL, TSLA, GOOGL';
+    document.getElementById('responseTime').textContent = '2.1s';
+    
+    // System Analytics
+    document.getElementById('apiSuccessRate').textContent = '98.7%';
+    document.getElementById('systemUptime').textContent = '99.9%';
+    document.getElementById('systemResponseTime').textContent = '142ms';
+    document.getElementById('errorRate').textContent = '0.2%';
+}
+
+function initializeCharts() {
+    // Charts will be initialized with real data from the API
+}
+
+function updateCharts(chartsData) {
+    // If backend provides a registration_chart image, display it
+    if (chartsData.registration_chart) {
+        const chartContainer = document.getElementById('registrationChart');
+        if (chartContainer) {
+            chartContainer.outerHTML = `<img src='${chartsData.registration_chart}' alt='User Registrations Chart' style='width:100%;max-width:600px;'>`;
+        }
+    } else {
+        createSampleCharts();
+    }
+}
+
+function createSampleCharts() {
+    // Sample data for charts
+    const registrationData = {
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul'],
+        datasets: [{
+            label: 'User Registrations',
+            data: [65, 78, 90, 81, 86, 95, 110],
+            borderColor: '#3a86ff',
+            backgroundColor: 'rgba(58, 134, 255, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const activeUsersData = {
+        labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+        datasets: [{
+            label: 'Active Users',
+            data: [120, 135, 130, 145, 140, 110, 95],
+            borderColor: '#8338ec',
+            backgroundColor: 'rgba(131, 56, 236, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const chatActivityData = {
+        labels: ['6AM', '9AM', '12PM', '3PM', '6PM', '9PM'],
+        datasets: [{
+            label: 'Chat Messages',
+            data: [45, 120, 85, 110, 75, 50],
+            borderColor: '#ff006e',
+            backgroundColor: 'rgba(255, 0, 110, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    };
+
+    const featureUsageData = {
+        labels: ['Research', 'Portfolio', 'Chat', 'Comparison'],
+        datasets: [{
+            label: 'Usage Count',
+            data: [45, 30, 60, 25],
+            backgroundColor: [
+                '#3a86ff', '#8338ec', '#ff006e', '#06d6a0'
+            ],
+            borderWidth: 1
+        }]
+    };
+
+    // Create charts
+    if (window.chartManager) {
+        chartManager.createStockChart('registrationChart', {
+            labels: registrationData.labels,
+            values: registrationData.datasets[0].data,
+            label: 'User Registrations',
+            color: '#3a86ff'
+        }, { type: 'line', data: registrationData });
+
+        chartManager.createStockChart('activeUsersChart', {
+            labels: activeUsersData.labels,
+            values: activeUsersData.datasets[0].data,
+            label: 'Active Users',
+            color: '#8338ec'
+        }, { type: 'line', data: activeUsersData });
+
+        chartManager.createStockChart('chatActivityChart', {
+            labels: chatActivityData.labels,
+            values: chatActivityData.datasets[0].data,
+            label: 'Chat Messages',
+            color: '#ff006e'
+        }, { type: 'line', data: chatActivityData });
+
+        chartManager.createPortfolioPieChart('featureUsageChart', [
+            { label: 'Research', value: 45 },
+            { label: 'Portfolio', value: 30 },
+            { label: 'Chat', value: 60 },
+            { label: 'Comparison', value: 25 }
+        ]);
+    }
+
+    // Update activity log
+    updateActivityLog();
+}
+
+function updateActivityLog() {
+    const logList = document.getElementById('activityLog');
+    const sampleLogs = [
+        { time: '2 minutes ago', message: 'New user registration: john_doe', type: 'info' },
+        { time: '5 minutes ago', message: 'Research report generated for AAPL', type: 'success' },
+        { time: '12 minutes ago', message: 'Portfolio updated by user jane_smith', type: 'info' },
+        { time: '25 minutes ago', message: 'API key rotation completed', type: 'warning' },
+        { time: '1 hour ago', message: 'System backup completed successfully', type: 'success' },
+        { time: '2 hours ago', message: 'New admin user created', type: 'info' }
+    ];
+
+    logList.innerHTML = sampleLogs.map(log => `
+        <div class="log-item ${log.type}">
+            <div class="log-time">${log.time}</div>
+            <div class="log-message">${log.message}</div>
+            <div class="log-type">${log.type}</div>
+        </div>
+    `).join('');
+}
+
+function openTab(tabName) {
+    // Hide all tab contents
+    const tabContents = document.getElementsByClassName('tab-content');
+    for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove('active');
+    }
+
+    // Remove active class from all buttons
+    const tabButtons = document.getElementsByClassName('tab-button');
+    for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove('active');
+    }
+
+    // Show the specific tab content
+    document.getElementById(tabName).classList.add('active');
+    
+    // Add active class to the button that opened the tab
+    event.currentTarget.classList.add('active');
+}
+
+function loadSampleData() {
+    // Load sample data when API is not available
+    const sampleData = {
+        user_metrics: {
+            total_users: 1542,
+            active_users: 1050,
+            new_users_today: 23
+        },
+        chat_metrics: {
+            total_chats: 8921,
+            total_messages: 45632
+        },
+        portfolio_metrics: {
+            total_portfolios: 876
+        }
+    };
+    
+    updateAnalyticsOverview(sampleData);
+    updateDetailedAnalytics(sampleData);
+    createSampleCharts();
+}
+</script>
+
+<style>
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.analytics-overview {
+    margin-bottom: 2rem;
+}
+
+.overview-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.stat-info h3 {
+    font-size: 1.8rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.stat-info p {
+    color: var(--gray-color);
+    margin: 0;
+}
+
+.stat-change {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.charts-section {
+    margin-bottom: 2rem;
+}
+
+.chart-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.chart-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.chart-card h3 {
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.chart-container {
+    height: 300px;
+    position: relative;
+}
+
+.detailed-analytics {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-tabs {
+    display: flex;
+    border-bottom: 2px solid #f0f0f0;
+    margin-bottom: 1.5rem;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--gray-color);
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    transition: var(--transition);
+}
+
+.tab-button.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.analytics-card {
+    text-align: center;
+    padding: 1.5rem;
+    border: 2px solid #f8f9fa;
+    border-radius: 8px;
+    transition: var(--transition);
+}
+
+.analytics-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.analytics-card h4 {
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+.analytics-card p {
+    color: var(--gray-color);
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+.activity-log {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+}
+
+.log-container {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.log-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.log-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #e9ecef;
+}
+
+.log-item.info {
+    border-left-color: var(--primary-color);
+    background: rgba(58, 134, 255, 0.05);
+}
+
+.log-item.success {
+    border-left-color: var(--success-color);
+    background: rgba(6, 214, 160, 0.05);
+}
+
+.log-item.warning {
+    border-left-color: var(--warning-color);
+    background: rgba(255, 209, 102, 0.05);
+}
+
+.log-item.error {
+    border-left-color: var(--danger-color);
+    background: rgba(239, 71, 111, 0.05);
+}
+
+.log-time {
+    font-size: 0.8rem;
+    color: var(--gray-color);
+    min-width: 100px;
+}
+
+.log-message {
+    flex: 1;
+    color: var(--dark-color);
+}
+
+.log-type {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.log-item.info .log-type {
+    background: var(--primary-color);
+    color: white;
+}
+
+.log-item.success .log-type {
+    background: var(--success-color);
+    color: white;
+}
+
+.log-item.warning .log-type {
+    background: var(--warning-color);
+    color: white;
+}
+
+.log-item.error .log-type {
+    background: var(--danger-color);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .chart-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .analytics-tabs {
+        flex-direction: column;
+    }
+    
+    .tab-button {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}

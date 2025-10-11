@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block title %}Compare Stocks - AGENSTOCK{% endblock %}
+{% block content %}
+<div class="compare-container">
+    <h2>Compare Stocks</h2>
+    <p>Analyze and compare multiple stocks side by side.</p>
+    <form id="compareForm" class="compare-form">
+        <div class="form-group">
+            <label for="symbolsInput">Stock Symbols (comma separated)</label>
+            <input type="text" id="symbolsInput" placeholder="e.g., AAPL, TSLA, MSFT" required />
+        </div>
+        <div class="form-group">
+            <label for="metricsInput">Metrics (comma separated)</label>
+            <input type="text" id="metricsInput" placeholder="e.g., price, pe_ratio, market_cap" />
+        </div>
+        <button type="submit" class="btn btn-primary">Compare</button>
+    </form>
+    <div id="compareResults" class="compare-results"></div>
+    <script src="/static/js/compare.js"></script>
+<style>
+.compare-container {
+    max-width: 700px;
+    margin: 2rem auto;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    padding: 2rem;
+}
+.compare-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+.compare-results {
+    margin-top: 2rem;
+}
+.compare-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #f8f9fa;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.compare-table th, .compare-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e9ecef;
+    text-align: center;
+}
+.compare-table th {
+    background: var(--primary-color);
+    color: white;
+}
+.compare-table tr:last-child td {
+    border-bottom: none;
+}
+.error {
+    color: var(--danger-color);
+    margin: 1rem 0;
+}
+.loading {
+    color: var(--primary-color);
+    margin: 1rem 0;
+}
+</style>
+</div>
+{% endblock %}

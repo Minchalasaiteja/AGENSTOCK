@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360">
+  <style>
+    .title{font-family:Arial;font-size:14px;fill:#0b1220}
+    .node{fill:#fff;stroke:#e6eefc}
+    .link{stroke:#9fbffb;stroke-width:2}
+  </style>
+  <text x="20" y="24" class="title">AGENSTOCK Architecture</text>
+  <rect x="20" y="40" width="220" height="80" rx="8" class="node"/>
+  <text x="130" y="80" text-anchor="middle" fill="#0b1220">FastAPI App</text>
+  <rect x="260" y="40" width="140" height="80" rx="8" class="node"/>
+  <text x="330" y="80" text-anchor="middle" fill="#0b1220">Services</text>
+  <rect x="420" y="40" width="180" height="80" rx="8" class="node"/>
+  <text x="510" y="80" text-anchor="middle" fill="#0b1220">Data & Caching</text>
+  <path d="M240 80 L260 80" class="link" marker-end="url(#m)"/>
+  <path d="M400 80 L420 80" class="link" marker-end="url(#m)"/>
+  <defs>
+    <marker id="m" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+      <path d="M0,0 L8,4 L0,8 z" fill="#3a86ff" />
+    </marker>
+  </defs>
+</svg>

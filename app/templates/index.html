@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AGENSTOCK - AI Stock Research Agent</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Animated Background -->
+    <div class="particles-background" id="particles-js"></div>
+    
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <i class="fas fa-chart-line"></i>
+                AGENSTOCK
+            </div>
+            <div class="nav-menu">
+                <a href="#features" class="nav-link">Features</a>
+                <a href="#demo" class="nav-link">Demo</a>
+                <a href="/login" class="nav-link">Login</a>
+                <a href="/signup" class="nav-link signup-btn">Sign Up Free</a>
+                <a href="/about" class="nav-link">About</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1 class="hero-title" style="padding-top: 20px;">
+                AI-Powered Stock Research
+                <span class="gradient-text">Made Simple</span>
+            </h1>
+            <p class="hero-description">
+                Conversational AI agent that provides comprehensive stock analysis, 
+                portfolio insights, and investment recommendations in natural language.
+            </p>
+            <div class="hero-buttons">
+                <a href="/signup" class="btn btn-primary">
+                    Get started
+                    <i class="fas fa-rocket"></i>
+                </a>
+                <a href="#demo" class="btn btn-secondary">
+                    Demo
+                    <i class="fas fa-play"></i>
+                </a>
+            </div>
+        </div>
+        
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2 class="section-title"> Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-robot"></i>
+                    </div>
+                    <h3>AI Research Agent</h3>
+                    <p>Natural language conversations for stock research and analysis with multi-level summaries</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <h3>Portfolio Management</h3>
+                    <p>Dynamic portfolio tracking with AI-powered insights and rebalancing suggestions</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <h3>Stock Comparison</h3>
+                    <p>Compare multiple stocks with sentiment analysis and comprehensive metrics</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <h3>PDF Reports</h3>
+                    <p>Generate detailed research reports with visual charts and downloadable PDFs</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h3>Enhanced Research</h3>
+                    <p>In-depth multi-source research reports with structured insights and recommendations</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Section -->
+    <section id="demo" class="demo">
+        <div class="container">
+            <h2 class="section-title"> Demo</h2>
+            <div class="demo-container">
+                <div class="demo-grid" style="grid-template-columns: repeat(2, 1fr); gap: 2rem;">
+                    <div class="chat-demo demo-card">
+                    <div class="chat-header">
+                        <div class="chat-avatar">
+                            <i class="fas fa-robot"></i>
+                        </div>
+                        <div class="chat-info">
+                            <h4>Stock Research Agent</h4>
+                            <span class="status online">Online</span>
+                        </div>
+                    </div>
+                    <div class="chat-messages">
+                        <div class="message ai-message">
+                            <p>Hello! I'm your AI stock research assistant. Ask me about any stock, portfolio analysis, or market insights!</p>
+                        </div>
+                        <div class="message user-message">
+                            <p>Can you analyze Apple's (AAPL) growth potential?</p>
+                        </div>
+                        <div class="message ai-message">
+                            <p>Based on current analysis, AAPL shows strong growth potential with...</p>
+                            <div class="analysis-preview">
+                                <div class="metric positive">Revenue Growth: +8.1% YoY</div>
+                                <div class="metric positive">PE Ratio: 28.3</div>
+                                <div class="metric neutral">Market Position: Strong</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chat-input">
+                        <input type="text" placeholder="Ask about any stock..." id="demo-input">
+                        <button class="send-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                    </div>
+                    <div class="research-demo demo-card">
+                        <div class="chat-header" style="background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));">
+                            <div class="chat-avatar">
+                                <i class="fas fa-file-pdf"></i>
+                            </div>
+                            <div class="chat-info">
+                                <h4>Enhanced Research</h4>
+                                <span class="status online">Sample</span>
+                            </div>
+                        </div>
+                        <div class="research-preview" style="padding:1.5rem;">
+                            <p><strong>Company:</strong> Alphabet Inc. (GOOGL)</p>
+                            <p><strong>Summary:</strong> Strong revenue growth driven by ad business and cloud expansion. Target: $1700</p>
+                            <div class="analysis-preview">
+                                <div class="metric positive">Revenue Growth: +12% YoY</div>
+                                <div class="metric positive">Gross Margin: 54%</div>
+                                <div class="metric neutral">Market Position: Leading</div>
+                            </div>
+                            <div class="demo-actions" style="margin-top:1rem;">
+                                <a href="/enhanced-research" class="btn btn-primary">Try Enhanced Research</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <i class="fas fa-chart-line"></i>
+                    AGENSTOCK
+                </div>
+                <p>AI-Powered Stock Research Platform</p>
+                <div class="footer-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Contact</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/main.js"></script>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        // Particles.js initialization
+        particlesJS('particles-js', {
+            particles: {
+                number: { value: 80, density: { enable: true, value_area: 800 } },
+                color: { value: "#3a86ff" },
+                shape: { type: "circle" },
+                opacity: { value: 0.5, random: true },
+                size: { value: 3, random: true },
+                line_linked: {
+                    enable: true,
+                    distance: 150,
+                    color: "#3a86ff",
+                    opacity: 0.4,
+                    width: 1
+                },
+                move: {
+                    enable: true,
+                    speed: 2,
+                    direction: "none",
+                    random: true,
+                    straight: false,
+                    out_mode: "out",
+                    bounce: false
+                }
+            },
+            interactivity: {
+                detect_on: "canvas",
+                events: {
+                    onhover: { enable: true, mode: "repulse" },
+                    onclick: { enable: true, mode: "push" }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

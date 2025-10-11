@@ -1,0 +1,513 @@
+{% extends "base.html" %}
+
+{% block title %}Stock Research - AGENSTOCK{% endblock %}
+
+{% block content %}
+<div class="research-container">
+    <div class="research-header">
+        <h1>AI Stock Research</h1>
+        <p>Get comprehensive analysis for any stock using our AI research agent</p>
+    </div>
+
+    <!-- Research Input Section -->
+    <div class="research-input-section">
+        <div class="input-card">
+            <h3>Research Parameters</h3>
+            <form id="researchForm">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="symbol">Stock Symbol</label>
+                        <input type="text" id="symbol" name="symbol" placeholder="e.g., AAPL, TSLA, GOOGL" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeframe">Timeframe</label>
+                        <select id="timeframe" name="timeframe">
+                            <option value="1m">1 Month</option>
+                            <option value="3m">3 Months</option>
+                            <option value="6m">6 Months</option>
+                            <option value="1y" selected>1 Year</option>
+                            <option value="2y">2 Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="query">Research Question</label>
+                    <textarea id="query" name="query" rows="4" placeholder="e.g., What's the growth potential of this stock? Analyze financial health and future prospects..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="category">Category Filter</label>
+                    <select id="category" name="category" multiple style="min-height: 80px;"></select>
+                </div>
+                <div class="form-options">
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="include_news" checked>
+                        <span class="checkmark"></span>
+                        Include News Sentiment
+                    </label>
+                    <label class="checkbox-label">
+                        <input type="checkbox" name="include_technical" checked>
+                        <span class="checkmark"></span>
+                        Include Technical Analysis
+                    </label>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="researchBtn">
+                    <i class="fas fa-search"></i>
+                    Start Research
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Research Results -->
+    <div class="research-results" id="researchResults" style="display: none;">
+        <div class="results-header">
+            <h2>Research Report: <span id="reportSymbol"></span></h2>
+            <button class="btn btn-secondary" id="downloadReportBtn" style="color: black;">
+                <i class="fas fa-download"></i>
+                Download PDF
+            </button>
+        </div>
+
+        <div class="report-sections">
+            <!-- Executive Summary -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-file-alt"></i>
+                    Executive Summary
+                </h3>
+                <div class="section-content" id="executiveSummary">
+                    <div class="loading">Generating analysis...</div>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Key Metrics
+                </h3>
+                <div class="metrics-grid" id="keyMetrics">
+                    <!-- Metrics will be populated here -->
+                </div>
+            </div>
+
+            <!-- Deep Dive -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-search-depth"></i>
+                    Deep Dive Analysis
+                </h3>
+                <div class="section-content" id="deepDive">
+                    <!-- Deep dive content -->
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Risk Assessment
+                </h3>
+                <div class="risks-list" id="riskAssessment">
+                    <!-- Risks will be populated here -->
+                </div>
+            </div>
+
+            <!-- Recommendation -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-bullseye"></i>
+                    Investment Recommendation
+                </h3>
+                <div class="recommendation-card" id="recommendation">
+                    <!-- Recommendation will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>AI Research in Progress</h3>
+            <p>Our AI agent is analyzing the stock data and generating your report...</p>
+            <div class="loading-steps">
+                <div class="step active">Fetching stock data</div>
+                <div class="step">Analyzing financials</div>
+                <div class="step">Processing news sentiment</div>
+                <div class="step">Generating report</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('researchForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const researchData = {
+        symbol: formData.get('symbol').toUpperCase(),
+        query: formData.get('query'),
+        timeframe: formData.get('timeframe'),
+        include_news: formData.get('include_news') === 'on',
+        include_technical: formData.get('include_technical') === 'on'
+    };
+    // Add selected categories
+    const selectedCategories = Array.from(document.getElementById('category').selectedOptions).map(opt => opt.value);
+    researchData.categories = selectedCategories;
+    await performResearch(researchData);
+});
+
+// Fetch and populate available categories on page load
+document.addEventListener('DOMContentLoaded', async function() {
+    try {
+        const response = await fetch('/api/research/categories');
+        if (response.ok) {
+            const data = await response.json();
+            const categorySelect = document.getElementById('category');
+            categorySelect.innerHTML = '';
+            data.categories.forEach(cat => {
+                const option = document.createElement('option');
+                option.value = cat.id;
+                option.textContent = `${cat.name} - ${cat.description}`;
+                categorySelect.appendChild(option);
+            });
+        }
+    } catch (err) {
+        console.error('Failed to load categories:', err);
+    }
+});
+async function performResearch(researchData) {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const researchResults = document.getElementById('researchResults');
+    
+    // Show loading
+    loadingOverlay.style.display = 'flex';
+    researchResults.style.display = 'none';
+    
+    try {
+        const response = await fetch('/api/research/stock', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify(researchData)
+        });
+        
+        if (response.ok) {
+            const analysis = await response.json();
+            displayResearchResults(analysis, researchData.symbol);
+        } else {
+            const error = await response.json().catch(() => ({ detail: 'Research failed' }));
+            throw new Error(error.detail || 'Research failed');
+        }
+    } catch (error) {
+        alert('Research failed: ' + error.message);
+    } finally {
+        loadingOverlay.style.display = 'none';
+        researchResults.style.display = 'block';
+    }
+}
+
+function displayResearchResults(analysis, symbol) {
+    // Update symbol
+    document.getElementById('reportSymbol').textContent = symbol;
+    
+    // Update executive summary
+    document.getElementById('executiveSummary').innerHTML = `
+        <div class="summary-content">
+            <p>${analysis.executive_summary || analysis.raw_analysis}</p>
+        </div>
+    `;
+    
+    // Update key metrics
+    const metricsGrid = document.getElementById('keyMetrics');
+    if (analysis.metrics) {
+        metricsGrid.innerHTML = Object.entries(analysis.metrics).map(([key, value]) => `
+            <div class="metric-card">
+                <div class="metric-name">${key.replace(/_/g, ' ').toUpperCase()}</div>
+                <div class="metric-value">${value}</div>
+            </div>
+        `).join('');
+    }
+    
+    // Update deep dive
+    document.getElementById('deepDive').innerHTML = `
+        <div class="deep-dive-content">
+            <p>${analysis.deep_dive || 'Deep dive analysis not available.'}</p>
+        </div>
+    `;
+    
+    // Update risk assessment
+    const risksList = document.getElementById('riskAssessment');
+    if (analysis.risks && analysis.risks.length > 0) {
+        risksList.innerHTML = analysis.risks.map(risk => `
+            <div class="risk-item">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>${risk}</span>
+            </div>
+        `).join('');
+    }
+    
+    // Update recommendation
+    const recommendation = document.getElementById('recommendation');
+    if (analysis.recommendation) {
+        const rec = analysis.recommendation;
+        recommendation.innerHTML = `
+            <div class="recommendation-header">
+                <span class="rating ${rec.rating?.toLowerCase()}">${rec.rating || 'HOLD'}</span>
+                <span class="target-price">Target: ${rec.target_price || 'N/A'}</span>
+            </div>
+            <div class="confidence">
+                Confidence: <span class="confidence-level">${rec.confidence || 'Medium'}</span>
+            </div>
+            <div class="reasoning">
+                <p>${rec.reasoning || 'No specific reasoning provided.'}</p>
+            </div>
+        `;
+    }
+    
+    // Setup download button
+    document.getElementById('downloadReportBtn').onclick = () => downloadReport(analysis, symbol);
+}
+
+async function downloadReport(analysis, symbol) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/research/generate-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                symbol: symbol,
+                analysis: analysis
+            })
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AGENSTOCK_Research_${symbol}_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            throw new Error('Failed to generate report');
+        }
+    } catch (error) {
+        alert('Download failed: ' + error.message);
+    }
+}
+</script>
+
+<style>
+.research-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.research-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.research-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+    margin-top: 2.5rem;
+}
+
+.input-card {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-options {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.research-results {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.report-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.metric-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metric-name {
+    font-size: 0.8rem;
+    color: var(--gray-color);
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.risks-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.risk-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: #fff3cd;
+    border-radius: 4px;
+}
+
+.recommendation-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.rating {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    color: white;
+}
+
+.rating.buy {
+    background: var(--success-color);
+}
+
+.rating.hold {
+    background: var(--warning-color);
+}
+
+.rating.sell {
+    background: var(--danger-color);
+}
+
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    max-width: 500px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.loading-steps {
+    margin-top: 1.5rem;
+}
+
+.step {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.step.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+</style>
+{% endblock %}

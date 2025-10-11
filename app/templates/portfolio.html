@@ -1,0 +1,643 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio - AGENSTOCK{% endblock %}
+
+{% block content %}
+<div class="portfolio-container">
+    <div class="portfolio-header">
+        <h1>Investment Portfolio</h1>
+        <p>Manage your stock holdings and track performance</p>
+    </div>
+
+    <!-- Portfolio Summary -->
+    <div class="portfolio-summary">
+        <div class="summary-card total-value">
+            <div class="summary-icon">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="summary-info">
+                <h3 id="totalPortfolioValue">$0.00</h3>
+                <p>Total Portfolio Value</p>
+            </div>
+        </div>
+        
+        <div class="summary-card total-invested">
+            <div class="summary-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="summary-info">
+                <h3 id="totalInvested">$0.00</h3>
+                <p>Total Invested</p>
+            </div>
+        </div>
+        
+        <div class="summary-card total-pnl">
+            <div class="summary-icon">
+                <i class="fas fa-trending-up"></i>
+            </div>
+            <div class="summary-info">
+                <h3 id="totalPnL">$0.00</h3>
+                <p>Total P&L</p>
+            </div>
+            <div class="pnl-percent" id="pnlPercent">0.0%</div>
+        </div>
+        
+        <div class="summary-card cash-balance">
+            <div class="summary-icon">
+                <i class="fas fa-money-bill-wave"></i>
+            </div>
+            <div class="summary-info">
+                <h3 id="cashBalance">$0.00</h3>
+                <p>Cash Balance</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Actions -->
+    <div class="portfolio-actions">
+        <button class="btn btn-primary" onclick="showAddHoldingModal()">
+            <i class="fas fa-plus"></i>
+            Add Holding
+        </button>
+        <button class="btn btn-secondary" onclick="refreshPortfolio()">
+            <i class="fas fa-sync-alt"></i>
+            Refresh Prices
+        </button>
+    </div>
+
+    <!-- Holdings Table -->
+    <div class="holdings-section">
+        <h2>Your Holdings</h2>
+        <div class="holdings-table-container">
+            <table class="holdings-table" id="holdingsTable">
+                <thead>
+                    <tr>
+                        <th>Symbol</th>
+                        <th>Quantity</th>
+                        <th>Avg Cost</th>
+                        <th>Current Price</th>
+                        <th>Total Value</th>
+                        <th>P&L</th>
+                        <th>P&L %</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="holdingsTableBody">
+                    <!-- Holdings will be populated here -->
+                </tbody>
+            </table>
+            <div class="no-holdings" id="noHoldings" style="display: none;">
+                <i class="fas fa-chart-pie"></i>
+                <h3>No Holdings Yet</h3>
+                <p>Start by adding your first stock holding</p>
+                <button class="btn btn-primary" onclick="showAddHoldingModal()">
+                    <i class="fas fa-plus"></i>
+                    Add First Holding
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Portfolio Analysis -->
+    <div class="analysis-section">
+        <h2>Portfolio Analysis</h2>
+        <div class="analysis-grid">
+            <div class="analysis-card">
+                <h3>Diversification</h3>
+                <div class="sector-allocation" id="sectorAllocation">
+                    <!-- Sector allocation will be populated here -->
+                </div>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>Risk Metrics</h3>
+                <div class="risk-metrics" id="riskMetrics">
+                    <!-- Risk metrics will be populated here -->
+                </div>
+            </div>
+            
+            <div class="analysis-card">
+                <h3>Performance</h3>
+                <div class="performance-metrics" id="performanceMetrics">
+                    <!-- Performance metrics will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Holding Modal -->
+<div class="modal-overlay" id="addHoldingModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add New Holding</h3>
+            <button class="modal-close" onclick="hideAddHoldingModal()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="addHoldingForm">
+            <div class="form-group">
+                <label for="addSymbol">Stock Symbol</label>
+                <input type="text" id="addSymbol" name="symbol" placeholder="e.g., AAPL" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="addQuantity">Quantity</label>
+                <input type="number" id="addQuantity" name="quantity" step="0.001" min="0.001" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="addPrice">Price per Share ($)</label>
+                <input type="number" id="addPrice" name="price" step="0.01" min="0.01" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="addNotes">Notes (Optional)</label>
+                <textarea id="addNotes" name="notes" rows="3" placeholder="Any additional notes..."></textarea>
+            </div>
+            
+            <div class="modal-actions">
+                <button type="button" class="btn btn-secondary" onclick="hideAddHoldingModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Add Holding</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadPortfolio();
+    loadPortfolioAnalysis();
+});
+
+async function loadPortfolio() {
+    try {
+        const token = localStorage.getItem('access_token');
+        
+        // Load portfolio summary
+        const portfolioResponse = await fetch('/api/portfolio/', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (portfolioResponse.ok) {
+            const portfolio = await portfolioResponse.json();
+            updatePortfolioSummary(portfolio);
+        }
+        
+        // Load holdings with current prices
+        const holdingsResponse = await fetch('/api/portfolio/holdings', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (holdingsResponse.ok) {
+            const holdings = await holdingsResponse.json();
+            updateHoldingsTable(holdings);
+        }
+    } catch (error) {
+        console.error('Failed to load portfolio:', error);
+    }
+}
+
+async function loadPortfolioAnalysis() {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/portfolio/analysis', {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            const analysis = await response.json();
+            updatePortfolioAnalysis(analysis);
+        }
+    } catch (error) {
+        console.error('Failed to load portfolio analysis:', error);
+    }
+}
+
+function updatePortfolioSummary(portfolio) {
+    document.getElementById('totalPortfolioValue').textContent = `$${portfolio.total_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('cashBalance').textContent = `$${portfolio.cash_balance.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function updateHoldingsTable(holdings) {
+    const tableBody = document.getElementById('holdingsTableBody');
+    const noHoldings = document.getElementById('noHoldings');
+    
+    if (holdings.length === 0) {
+        tableBody.innerHTML = '';
+        noHoldings.style.display = 'block';
+        return;
+    }
+    
+    noHoldings.style.display = 'none';
+    
+    let totalInvested = 0;
+    let totalPnL = 0;
+    
+    tableBody.innerHTML = holdings.map(holding => {
+        const invested = holding.quantity * holding.average_cost;
+        const pnl = holding.unrealized_pnl;
+        const pnlPercent = holding.unrealized_pnl_percent;
+        
+        totalInvested += invested;
+        totalPnL += pnl;
+        
+        return `
+            <tr>
+                <td class="symbol-cell">
+                    <strong>${holding.symbol}</strong>
+                </td>
+                <td>${holding.quantity.toLocaleString(undefined, { maximumFractionDigits: 3 })}</td>
+                <td>$${holding.average_cost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>$${holding.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td>$${holding.total_value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                <td class="${pnl >= 0 ? 'positive' : 'negative'}">
+                    $${pnl.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </td>
+                <td class="${pnlPercent >= 0 ? 'positive' : 'negative'}">
+                    ${pnlPercent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%
+                </td>
+                <td>
+                    <button class="btn btn-danger btn-sm" onclick="removeHolding('${holding.symbol}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+    
+    // Update summary with calculated values
+    document.getElementById('totalInvested').textContent = `$${totalInvested.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    document.getElementById('totalPnL').textContent = `$${totalPnL.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    
+    const pnlPercent = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
+    document.getElementById('pnlPercent').textContent = `${pnlPercent.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
+    document.getElementById('pnlPercent').className = `pnl-percent ${pnlPercent >= 0 ? 'positive' : 'negative'}`;
+}
+
+function updatePortfolioAnalysis(analysis) {
+    // Update sector allocation
+    const sectorAllocation = document.getElementById('sectorAllocation');
+    if (analysis.diversification) {
+        sectorAllocation.innerHTML = Object.entries(analysis.diversification).map(([sector, percentage]) => `
+            <div class="sector-item">
+                <div class="sector-name">${sector}</div>
+                <div class="sector-bar">
+                    <div class="sector-fill" style="width: ${percentage}%"></div>
+                </div>
+                <div class="sector-percentage">${percentage.toFixed(1)}%</div>
+            </div>
+        `).join('');
+    }
+    
+    // Update risk metrics
+    const riskMetrics = document.getElementById('riskMetrics');
+    if (analysis.risk_metrics) {
+        riskMetrics.innerHTML = Object.entries(analysis.risk_metrics).map(([metric, value]) => `
+            <div class="metric-item">
+                <span class="metric-name">${metric}</span>
+                <span class="metric-value">${value}</span>
+            </div>
+        `).join('');
+    }
+    
+    // Update performance metrics
+    const performanceMetrics = document.getElementById('performanceMetrics');
+    if (analysis.performance_metrics) {
+        performanceMetrics.innerHTML = Object.entries(analysis.performance_metrics).map(([metric, value]) => `
+            <div class="metric-item">
+                <span class="metric-name">${metric}</span>
+                <span class="metric-value">${typeof value === 'number' ? value.toFixed(2) + '%' : value}</span>
+            </div>
+        `).join('');
+    }
+}
+
+function showAddHoldingModal() {
+    document.getElementById('addHoldingModal').style.display = 'flex';
+}
+
+function hideAddHoldingModal() {
+    document.getElementById('addHoldingModal').style.display = 'none';
+    document.getElementById('addHoldingForm').reset();
+}
+
+document.getElementById('addHoldingForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const holdingData = {
+        symbol: formData.get('symbol').toUpperCase(),
+        quantity: parseFloat(formData.get('quantity')),
+        price: parseFloat(formData.get('price')),
+        notes: formData.get('notes')
+    };
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/portfolio/holdings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(holdingData)
+        });
+        
+        if (response.ok) {
+            hideAddHoldingModal();
+            loadPortfolio(); // Reload portfolio data
+        } else {
+            const error = await response.json();
+            alert('Failed to add holding: ' + error.detail);
+        }
+    } catch (error) {
+        alert('Failed to add holding: ' + error.message);
+    }
+});
+
+async function removeHolding(symbol) {
+    if (!confirm(`Are you sure you want to remove ${symbol} from your portfolio?`)) {
+        return;
+    }
+    
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch(`/api/portfolio/holdings/${symbol}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (response.ok) {
+            loadPortfolio(); // Reload portfolio data
+        } else {
+            throw new Error('Failed to remove holding');
+        }
+    } catch (error) {
+        alert('Failed to remove holding: ' + error.message);
+    }
+}
+
+async function refreshPortfolio() {
+    await loadPortfolio();
+    await loadPortfolioAnalysis();
+    alert('Portfolio prices updated!');
+}
+</script>
+// Setup websocket for realtime portfolio updates
+(function() {
+    try {
+        const userId = '{{ user._id if user else "" }}';
+        if (!userId) return;
+        const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+        const host = window.location.host;
+        const ws = new WebSocket(`${protocol}://${host}/api/chat/ws/${userId}`);
+        ws.onmessage = (evt) => {
+            try {
+                const payload = JSON.parse(evt.data);
+                if (payload.type === 'portfolio_update') {
+                    const p = payload.portfolio;
+                    if (p.total_value !== undefined) {
+                        document.getElementById('totalPortfolioValue').textContent = `$${Number(p.total_value).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    }
+                }
+            } catch (e) { console.error(e); }
+        };
+    } catch (e) { console.error('Portfolio websocket init error', e); }
+})();
+
+<style>
+.portfolio-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.portfolio-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.portfolio-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.summary-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: white;
+}
+
+.summary-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    color: var(--dark-color);
+}
+
+.pnl-percent {
+    margin-left: auto;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.pnl-percent.positive {
+    background: var(--success-color);
+    color: white;
+}
+
+.pnl-percent.negative {
+    background: var(--danger-color);
+    color: white;
+}
+
+.portfolio-actions {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.holdings-section {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.holdings-table-container {
+    overflow-x: auto;
+}
+
+.holdings-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.holdings-table th,
+.holdings-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.holdings-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.symbol-cell {
+    font-weight: 600;
+}
+
+.positive {
+    color: var(--success-color);
+}
+
+.negative {
+    color: var(--danger-color);
+}
+
+.no-holdings {
+    text-align: center;
+    padding: 3rem;
+    color: var(--gray-color);
+}
+
+.no-holdings i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: #dee2e6;
+}
+
+.analysis-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.analysis-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.sector-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.sector-bar {
+    flex: 1;
+    background: #e9ecef;
+    border-radius: 10px;
+    height: 8px;
+    overflow: hidden;
+}
+
+.sector-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    transition: width 0.3s ease;
+}
+
+.metric-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    width: 90%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--gray-color);
+}
+
+.modal-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+}
+
+.btn-danger {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #dc3545;
+}
+</style>
+{% endblock %}

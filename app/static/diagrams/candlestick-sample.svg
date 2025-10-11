@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="200" viewBox="0 0 480 200">
+  <style>
+    .axis{stroke:#e6eefc}
+    .up{fill:#06d6a0}
+    .down{fill:#ef476f}
+  </style>
+  <rect width="100%" height="100%" fill="#fff"/>
+  <!-- simple 7-candle sample -->
+  <g transform="translate(20,20)">
+    <!-- candle 1 up -->
+    <line x1="10" x2="10" y1="10" y2="60" stroke="#333"/>
+    <rect x="2" y="30" width="16" height="20" class="up"/>
+    <!-- candle 2 down -->
+    <line x1="50" x2="50" y1="8" y2="64" stroke="#333"/>
+    <rect x="42" y="22" width="16" height="40" class="down"/>
+    <!-- candle 3 up -->
+    <line x1="90" x2="90" y1="6" y2="52" stroke="#333"/>
+    <rect x="82" y="28" width="16" height="18" class="up"/>
+    <!-- candle 4 up -->
+    <line x1="130" x2="130" y1="18" y2="70" stroke="#333"/>
+    <rect x="122" y="34" width="16" height="26" class="up"/>
+    <!-- candle 5 down -->
+    <line x1="170" x2="170" y1="4" y2="56" stroke="#333"/>
+    <rect x="162" y="20" width="16" height="36" class="down"/>
+  </g>
+</svg>

@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+
+{% block title %}Profile - AGENSTOCK{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>User Profile</h1>
+        <p>Manage your account settings and preferences</p>
+    </div>
+
+    <div class="profile-content">
+        <!-- Profile Information -->
+        <div class="profile-section">
+            <h2>Profile Information</h2>
+            <div class="profile-card">
+                <form id="profileForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="username">Username</label>
+                            <input type="text" id="username" name="username" value="{{ user.username }}" readonly>
+                            <small>Username cannot be changed</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" name="email" value="{{ user.email }}" required>
+                            <div class="email-status" id="emailStatus">
+                                {% if user.email_verified %}
+                                <span class="verified"><i class="fas fa-check-circle"></i> Verified</span>
+                                {% else %}
+                                <span class="unverified"><i class="fas fa-exclamation-circle"></i> Unverified</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="full_name">Full Name</label>
+                        <input type="text" id="full_name" name="full_name" value="{{ user.full_name or '' }}">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Update Profile
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Email Verification -->
+        {% if not user.email_verified %}
+        <div class="profile-section">
+            <h2>Email Verification</h2>
+            <div class="profile-card">
+                <div class="verification-info">
+                    <i class="fas fa-envelope"></i>
+                    <div>
+                        <h4>Verify your email address</h4>
+                        <p id="verificationMessage">Enter your email and request a verification code.</p>
+                    </div>
+                </div>
+                <div id="verificationControls">
+                    <button id="sendVerificationBtn" class="btn btn-primary" onclick="resendVerificationCode()">
+                        <i class="fas fa-paper-plane"></i>
+                        Send verification code
+                    </button>
+                </div>
+                <form id="verificationForm" class="verification-form" style="display:none; margin-top:1rem;">
+                    <div class="form-group">
+                        <label for="verificationCode">Verification Code</label>
+                        <input type="text" id="verificationCode" name="code" placeholder="Enter verification code" required>
+                    </div>
+                    <input type="hidden" id="verificationEmail" value="{{ user.email }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-check"></i>
+                        Verify Email
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="resendVerificationCode()">
+                        <i class="fas fa-redo"></i>
+                        Resend Code
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Change Password -->
+        <div class="profile-section">
+            <h2>Change Password</h2>
+            <div class="profile-card">
+                <form id="passwordForm">
+                    <div class="form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" name="current_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" name="new_password" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" name="confirm_password" required>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-key"></i>
+                        Change Password
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Account Statistics -->
+        <div class="profile-section">
+            <h2>Account Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="chatSessions">0</h3>
+                        <p>Chat Sessions</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-file-pdf"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="researchReports">0</h3>
+                        <p>Research Reports</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar"></i>
+                    </div>
+                    <div class="stat-info">
+                        <h3 id="memberSince">0 days</h3>
+                        <p>Member Since</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    loadAccountStats();
+    setupFormHandlers();
+});
+
+function setupFormHandlers() {
+    // Profile form
+    document.getElementById('profileForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const profileData = {
+            email: formData.get('email'),
+            full_name: formData.get('full_name')
+        };
+        
+        await updateProfile(profileData);
+    });
+    
+    // Verification form
+    document.getElementById('verificationForm')?.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const verificationData = {
+            code: formData.get('code'),
+            email: document.getElementById('verificationEmail').value
+        };
+        
+        await verifyEmail(verificationData);
+    });
+    
+    // Password form
+    document.getElementById('passwordForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const passwordData = {
+            password: formData.get('current_password'),
+            new_password: formData.get('new_password')
+        };
+        
+        // Validate password confirmation
+        if (formData.get('new_password') !== formData.get('confirm_password')) {
+            alert('New passwords do not match');
+            return;
+        }
+        
+        await changePassword(passwordData);
+    });
+}
+
+async function loadAccountStats() {
+    try {
+        // Use dashboard-data endpoint which now includes counts
+        const token = localStorage.getItem('access_token');
+        const resp = await fetch('/api/users/dashboard-data', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (resp.ok) {
+            const data = await resp.json();
+            const counts = data.counts || {};
+            document.getElementById('chatSessions').textContent = counts.chat_sessions || 0;
+            document.getElementById('researchReports').textContent = counts.research_reports || 0;
+        }
+        
+        // Calculate member since
+        const memberSince = new Date('{{ user.created_at }}');
+        const today = new Date();
+        const daysSince = Math.floor((today - memberSince) / (1000 * 60 * 60 * 24));
+        document.getElementById('memberSince').textContent = `${daysSince} days`;
+        
+    } catch (error) {
+        console.error('Failed to load account stats:', error);
+    }
+}
+
+async function updateProfile(profileData) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/users/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(profileData)
+        });
+        
+        if (response.ok) {
+            AGENSTOCK.showNotification('Profile updated successfully!', 'success');
+            // If email changed, show verification section
+            if (profileData.email !== '{{ user.email }}') {
+                location.reload();
+            }
+        } else {
+            const error = await response.json();
+            AGENSTOCK.showNotification('Failed to update profile: ' + (error.detail || 'Unknown'), 'error');
+        }
+    } catch (error) {
+        alert('Failed to update profile: ' + error.message);
+    }
+}
+
+async function verifyEmail(verificationData) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/users/verify-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(verificationData)
+        });
+        
+        if (response.ok) {
+            AGENSTOCK.showNotification('Email verified successfully!', 'success');
+            location.reload();
+        } else {
+            const error = await response.json();
+            AGENSTOCK.showNotification('Verification failed: ' + (error.detail || 'Unknown'), 'error');
+        }
+    } catch (error) {
+        alert('Verification failed: ' + error.message);
+    }
+}
+
+async function resendVerificationCode() {
+    try {
+        const email = document.getElementById('verificationEmail').value;
+        const token = localStorage.getItem('access_token');
+        const resp = await fetch('/api/users/send-verification', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ email })
+        });
+        const data = await resp.json();
+        if (resp.ok) {
+            // Reveal the verification form and show message
+            document.getElementById('verificationForm').style.display = 'flex';
+            const verMsg = document.getElementById('verificationMessage');
+            if (verMsg) verMsg.textContent = data.message || 'We sent a verification code to your email. Enter it below to verify your account.';
+            // Hide the initial send button
+            const sendBtn = document.getElementById('sendVerificationBtn');
+            if (sendBtn) sendBtn.style.display = 'none';
+            AGENSTOCK.showNotification('Verification code sent', 'success');
+        } else {
+            const err = data || {};
+            AGENSTOCK.showNotification('Failed to resend verification code: ' + (err.detail || err.error || 'Unknown'), 'error');
+        }
+    } catch (error) {
+        AGENSTOCK.showNotification('Failed to resend verification code: ' + error.message, 'error');
+    }
+}
+
+async function changePassword(passwordData) {
+    try {
+        const token = localStorage.getItem('access_token');
+        const response = await fetch('/api/users/profile', {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(passwordData)
+        });
+        
+        if (response.ok) {
+            AGENSTOCK.showNotification('Password changed successfully!', 'success');
+            document.getElementById('passwordForm').reset();
+        } else {
+            const error = await response.json();
+            AGENSTOCK.showNotification('Failed to change password: ' + (error.detail || 'Unknown'), 'error');
+        }
+    } catch (error) {
+        AGENSTOCK.showNotification('Failed to change password: ' + error.message, 'error');
+    }
+}
+</script>
+
+<style>
+.profile-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.profile-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.profile-section {
+    margin-bottom: 3rem;
+}
+
+.profile-section h2 {
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 0.5rem;
+}
+
+.profile-card {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.email-status {
+    margin-top: 0.5rem;
+}
+
+.verified {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.unverified {
+    color: var(--warning-color);
+    font-weight: 600;
+}
+
+.verification-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.verification-info i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.verification-form {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+.verification-form .form-group {
+    flex: 1;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.stat-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-icon {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.stat-info h3 {
+    font-size: 1.5rem;
+    margin-bottom: 0.25rem;
+    color: var(--dark-color);
+}
+
+.stat-info p {
+    color: var(--gray-color);
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .verification-form {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

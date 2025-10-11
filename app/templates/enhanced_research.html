@@ -1,0 +1,1123 @@
+{% extends "base.html" %}
+
+{% block title %}Enhanced Stock Research - AGENSTOCK{% endblock %}
+
+{% block content %}
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<div class="research-container">
+    <div class="research-header">
+        <h1>AI Enhanced Stock Research</h1>
+        <p>Get comprehensive analysis with explainable AI insights for any stock</p>
+    </div>
+
+    <!-- Research Input Section -->
+    <div class="research-input-section">
+        <div class="input-card">
+            <h3>Research Parameters</h3>
+            <form id="enhancedResearchForm">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-weight:600;">
+                        <input type="checkbox" id="agentDemoMode"> Agent Demo Mode
+                    </label>
+                    <small style="color:var(--muted-color)">Enable to run a lightweight public demo powered by the Stock Research Agent (no login required).</small>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="symbol">Stock Symbol</label>
+                        <input type="text" id="symbol" name="symbol" placeholder="e.g., AAPL, TSLA, GOOGL" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeframe">Timeframe</label>
+                        <select id="timeframe" name="timeframe">
+                            <option value="1m">1 Month</option>
+                            <option value="3m">3 Months</option>
+                            <option value="6m">6 Months</option>
+                            <option value="1y" selected>1 Year</option>
+                            <option value="2y">2 Years</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="query">Research Question</label>
+                    <textarea id="query" name="query" rows="4" placeholder="e.g., What's the growth potential of this stock? Analyze financial health and future prospects..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary btn-full" id="researchBtn">
+                    <i class="fas fa-search"></i>
+                    Generate Enhanced Report
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Research Results -->
+    <div class="research-results" id="researchResults" style="display: none;">
+        <div class="results-header">
+            <h2>Enhanced Research Report: <span id="reportSymbol"></span></h2>
+            <button class="btn btn-secondary" id="downloadReportBtn" style="color: black;">
+                <i class="fas fa-download"></i>
+                Download PDF
+            </button>
+        </div>
+
+        <!-- Multi-level Output Section -->
+        <div class="report-section">
+            <h3 class="section-title">
+                <i class="fas fa-layer-group"></i>
+                Multi-level Summary
+            </h3>
+            <div class="multi-level-container">
+                <div class="level-tab-container">
+                    <button class="level-tab active" data-level="level1">TL;DR</button>
+                    <button class="level-tab" data-level="level2">Highlights</button>
+                    <button class="level-tab" data-level="level3">Deep Dive</button>
+                    <button class="level-tab" data-level="level4">Visual Analytics</button>
+                </div>
+                <div class="level-content-container">
+                    <div class="level-content active" id="level1Content">
+                        <div class="loading">Loading TL;DR summary...</div>
+                    </div>
+                    <div class="level-content" id="level2Content">
+                        <div class="loading">Loading highlights...</div>
+                    </div>
+                    <div class="level-content" id="level3Content">
+                        <div class="loading">Loading deep dive analysis...</div>
+                    </div>
+                    <div class="level-content" id="level4Content">
+                        <div class="loading">Loading visual analytics...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="report-sections">
+            <!-- Executive Summary -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-file-alt"></i>
+                    Executive Summary
+                </h3>
+                <div class="section-content" id="executiveSummary">
+                    <div class="loading">Generating analysis...</div>
+                </div>
+            </div>
+
+            <!-- Key Metrics -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Key Metrics
+                </h3>
+                <div class="metrics-grid" id="keyMetrics">
+                    <!-- Metrics will be populated here -->
+                </div>
+            </div>
+
+            <!-- Growth Potential -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-line"></i>
+                    Growth Potential
+                </h3>
+                <div class="section-content" id="growthPotential">
+                    <div class="loading">Analyzing growth potential...</div>
+                </div>
+            </div>
+
+            <!-- Peer Comparison -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-balance-scale"></i>
+                    Peer Comparison
+                </h3>
+                <div class="section-content" id="peerComparison">
+                    <div class="loading">Generating peer comparison...</div>
+                </div>
+            </div>
+
+            <!-- Trend Analytics -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-chart-area"></i>
+                    Trend Analytics
+                </h3>
+                <div class="section-content" id="trendAnalytics">
+                    <div class="loading">Analyzing trends...</div>
+                </div>
+            </div>
+
+            <!-- Risk Assessment -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Risk Assessment
+                </h3>
+                <div class="section-content" id="riskAssessment">
+                    <div class="loading">Assessing risks...</div>
+                </div>
+            </div>
+
+            <!-- Chain of Thought Analysis -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-brain"></i>
+                    Chain of Thought Analysis
+                </h3>
+                <div class="section-content" id="cotAnalysis">
+                    <div class="loading">Generating chain of thought analysis...</div>
+                </div>
+            </div>
+
+            <!-- Recommendation -->
+            <div class="report-section">
+                <h3 class="section-title">
+                    <i class="fas fa-bullseye"></i>
+                    Investment Recommendation
+                </h3>
+                <div class="recommendation-card" id="recommendation">
+                    <!-- Recommendation will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <h3>Enhanced AI Research in Progress</h3>
+            <p>Our AI agent is analyzing the stock data and generating your comprehensive report...</p>
+            <div class="loading-steps">
+                <div class="step active">Fetching stock data</div>
+                <div class="step">Analyzing financials</div>
+                <div class="step">Processing peer comparisons</div>
+                <div class="step">Generating growth potential</div>
+                <div class="step">Assessing risks</div>
+                <div class="step">Creating visual analytics</div>
+                <div class="step">Finalizing report</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('enhancedResearchForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const researchData = {
+        symbol: formData.get('symbol').toUpperCase(),
+        query: formData.get('query'),
+        timeframe: formData.get('timeframe')
+    };
+    
+    await performEnhancedResearch(researchData);
+});
+
+// Agent Demo Mode behavior: prefill question when toggle is enabled
+document.getElementById('agentDemoMode').addEventListener('change', function(e) {
+    const q = document.getElementById('query');
+    if (e.target.checked) {
+        q.value = q.value || 'Provide a concise investment thesis, key risks, and 12-month price target for this company.';
+    }
+});
+
+// Tab switching functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const tabContainer = document.querySelector('.level-tab-container');
+    if (tabContainer) {
+        tabContainer.addEventListener('click', function(e) {
+            if (e.target.classList.contains('level-tab')) {
+                // Remove active class from all tabs
+                document.querySelectorAll('.level-tab').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+                
+                // Add active class to clicked tab
+                e.target.classList.add('active');
+                
+                // Hide all content sections
+                document.querySelectorAll('.level-content').forEach(content => {
+                    content.classList.remove('active');
+                });
+                
+                // Show the corresponding content section
+                const level = e.target.getAttribute('data-level');
+                document.getElementById(`${level}Content`).classList.add('active');
+            }
+        });
+    }
+});
+
+async function performEnhancedResearch(researchData) {
+    const loadingOverlay = document.getElementById('loadingOverlay');
+    const researchResults = document.getElementById('researchResults');
+    
+    // Show loading
+    loadingOverlay.style.display = 'flex';
+    researchResults.style.display = 'none';
+    
+    // Animate loading steps
+    const steps = document.querySelectorAll('.loading-steps .step');
+    let currentStep = 0;
+    
+    const loadingInterval = setInterval(() => {
+        steps.forEach(step => step.classList.remove('active'));
+        steps[currentStep].classList.add('active');
+        currentStep = (currentStep + 1) % steps.length;
+    }, 2000);
+    
+        // Helper: try authenticated endpoint first, fallback to public demo endpoint
+        async function postJsonAutoAuth(authPath, publicPath, data) {
+            try {
+                const authResp = await fetch(authPath, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'include', body: JSON.stringify(data)
+                });
+                if (authResp.ok) return await authResp.json();
+                // If unauthorized (401) or forbidden (403), try public path
+                if (authResp.status === 401 || authResp.status === 403) {
+                    const pubResp = await fetch(publicPath, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                    if (pubResp.ok) return await pubResp.json();
+                    return null;
+                }
+                // For other errors, still try public
+                const pubResp = await fetch(publicPath, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                if (pubResp.ok) return await pubResp.json();
+                return null;
+            } catch (e) {
+                try {
+                    const pubResp = await fetch(publicPath, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+                    if (pubResp.ok) return await pubResp.json();
+                } catch (ee) { /* ignore */ }
+                return null;
+            }
+        }
+
+        // First fetch lightweight enhanced visuals (fast) using auth then public fallback
+        try {
+            const vpayload = await postJsonAutoAuth('/api/research/enhanced', '/api/research/enhanced-public', researchData);
+            if (vpayload && vpayload.research) {
+                const chartSeries = vpayload.research.chart_series || vpayload.research.historical || [];
+                if (chartSeries.length && window.Plotly) {
+                    const dates = chartSeries.map(p => p.date);
+                    const closes = chartSeries.map(p => p.close);
+                    const traces = [{ x: dates, y: closes, type: 'scatter', mode: 'lines', name: 'Close' }];
+                    const layout = { title: `${researchData.symbol} Price (Preview)` };
+                    document.getElementById('level4Content').innerHTML = `<div id="priceChart" class="chart-container" style="height:360px"></div>`;
+                    Plotly.newPlot('priceChart', traces, layout, { responsive: true });
+                }
+            }
+        } catch (err) {
+            console.warn('Preview visuals failed', err);
+        }
+
+        // Then call the full enhanced-report (LLM heavy) to populate text sections
+        try {
+            // If Agent Demo Mode is enabled, try public fallback for heavy report as well
+            const usePublic = document.getElementById('agentDemoMode') && document.getElementById('agentDemoMode').checked;
+            let result = null;
+            if (usePublic) {
+                // Try calling the public enhanced endpoint for a lightweight research bundle
+                const pubResp = await fetch('/api/research/enhanced-public', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(researchData) });
+                if (pubResp.ok) result = await pubResp.json();
+            }
+            if (!result) {
+                // Use authenticated heavy endpoint (will prompt login in Swagger or return 401)
+                const response = await fetch('/api/research/enhanced-report', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify(researchData)
+                });
+                if (response.ok) {
+                    result = await response.json();
+                } else {
+                    // Try fallback via postJsonAutoAuth in case the helper is available
+                    try {
+                        result = await postJsonAutoAuth('/api/research/enhanced-report', '/api/research/enhanced-public', researchData);
+                    } catch (ee) { /* ignore */ }
+                }
+            }
+
+            if (result) {
+                displayEnhancedResearchResults(result, researchData.symbol);
+            } else {
+                throw new Error('Research failed or requires authentication. Please login to generate full report or enable Agent Demo Mode.');
+            }
+        } catch (error) {
+            alert('Enhanced research failed: ' + error.message);
+        } finally {
+            clearInterval(loadingInterval);
+            loadingOverlay.style.display = 'none';
+            researchResults.style.display = 'block';
+        }
+}
+
+function displayEnhancedResearchResults(result, symbol) {
+    // Update symbol
+    document.getElementById('reportSymbol').textContent = symbol;
+    
+    const report = result.research_report;
+    
+    // Update multi-level output
+    if (report.multi_level_output) {
+        document.getElementById('level1Content').innerHTML = `
+            <div class="tldr-content">
+                <p>${report.multi_level_output.level1_tldr}</p>
+            </div>
+        `;
+        
+        document.getElementById('level2Content').innerHTML = `
+            <div class="highlights-content">
+                <h4>Financial Highlights</h4>
+                <ul>
+                    ${report.multi_level_output.level2_highlights.financial_highlights.map(h => `<li>${h}</li>`).join('')}
+                </ul>
+                <h4>Qualitative Highlights</h4>
+                <ul>
+                    ${report.multi_level_output.level2_highlights.qualitative_highlights.map(h => `<li>${h}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+        
+        document.getElementById('level3Content').innerHTML = `
+            <div class="deep-dive-content">
+                <p>${report.multi_level_output.level3_deep_dive}</p>
+            </div>
+        `;
+        
+        // Visual analytics will be populated separately
+        document.getElementById('level4Content').innerHTML = `
+            <div class="visual-analytics-content">
+                <div class="visual-controls" style="display:flex;gap:10px;align-items:center;margin-bottom:10px;">
+                    <label><input type="checkbox" id="toggleSMA20" checked> SMA20</label>
+                    <label><input type="checkbox" id="toggleSMA50" checked> SMA50</label>
+                    <label><input type="checkbox" id="toggleMACD" checked> MACD</label>
+                    <label><input type="checkbox" id="toggleRSI" checked> RSI</label>
+                    <label style="margin-left:8px;">MA20 window: <input id="ma20Window" type="number" value="20" min="2" style="width:70px;margin-left:6px;"></label>
+                    <label>MA50 window: <input id="ma50Window" type="number" value="50" min="2" style="width:70px;margin-left:6px;"></label>
+                    <button id="exportChartBtn" class="btn btn-sm" style="margin-left:auto;">Export Charts PNG</button>
+                </div>
+                <div id="priceChart" class="chart-container"></div>
+                <div id="macdChart" class="chart-container"></div>
+                <div id="rsiChart" class="chart-container"></div>
+            </div>
+        `;
+        // If chart series provided, render using Plotly
+        const chartSeries = report.chart_series || null;
+        const indicators = report.indicators || null;
+        if (chartSeries && window.Plotly) {
+            const dates = chartSeries.map(p => p.date);
+            const closes = chartSeries.map(p => p.close);
+            const traces = [{
+                x: dates,
+                y: closes,
+                type: 'scatter',
+                mode: 'lines',
+                name: 'Close',
+                line: { color: '#3a86ff' }
+            }];
+            if (indicators && indicators.sma_20) {
+                const sma20 = dates.map(d => indicators.sma_20[d] || null);
+                traces.push({ x: dates, y: sma20, type: 'scatter', mode: 'lines', name: 'SMA 20', line: { dash: 'dash', color: '#ff6363' } });
+            }
+            if (indicators && indicators.sma_50) {
+                const sma50 = dates.map(d => indicators.sma_50[d] || null);
+                traces.push({ x: dates, y: sma50, type: 'scatter', mode: 'lines', name: 'SMA 50', line: { dash: 'dot', color: '#ffa600' } });
+            }
+            const layout = { title: `${symbol} Price Chart`, xaxis: { title: 'Date' }, yaxis: { title: 'Price' } };
+            Plotly.newPlot('priceChart', traces, layout, { responsive: true });
+        }
+    }
+    
+    // Update executive summary
+    document.getElementById('executiveSummary').innerHTML = `
+        <div class="summary-content">
+            <p>${report.summary || 'No summary available.'}</p>
+        </div>
+    `;
+    
+    // Update key metrics
+    const metricsGrid = document.getElementById('keyMetrics');
+    if (report.key_metrics) {
+        metricsGrid.innerHTML = Object.entries(report.key_metrics).map(([key, value]) => `
+            <div class="metric-card">
+                <div class="metric-name">${key.replace(/_/g, ' ').toUpperCase()}</div>
+                <div class="metric-value">${value}</div>
+            </div>
+        `).join('');
+    }
+    
+    // Update growth potential
+    // The backend now sends raw text from the LLM. We will render it directly.
+    // A markdown-to-html library would be a good future enhancement here.
+    if (report.growth_potential && report.growth_potential.raw_text) {
+        document.getElementById('growthPotential').innerHTML = `<div class="raw-content">${report.growth_potential.raw_text.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        document.getElementById('growthPotential').innerHTML = `<div class="raw-content">Growth potential analysis not available.</div>`;
+    }
+    
+    // Update peer comparison
+    if (report.peer_comparison && report.peer_comparison.raw_text) {
+        document.getElementById('peerComparison').innerHTML = `<div class="raw-content">${report.peer_comparison.raw_text.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        document.getElementById('peerComparison').innerHTML = `<div class="raw-content">Peer comparison not available.</div>`;
+    }
+    
+    // Update trend analytics
+    if (report.trend_analytics && report.trend_analytics.raw_text) {
+        document.getElementById('trendAnalytics').innerHTML = `<div class="raw-content">${report.trend_analytics.raw_text.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        document.getElementById('trendAnalytics').innerHTML = `<div class="raw-content">Trend analysis not available.</div>`;
+    }
+    
+    // Update risk assessment
+    if (report.risks && report.risks.raw_text) {
+        document.getElementById('riskAssessment').innerHTML = `<div class="raw-content">${report.risks.raw_text.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        document.getElementById('riskAssessment').innerHTML = `<div class="raw-content">Risk assessment not available.</div>`;
+    }
+    
+    // Update CoT analysis
+    if (report.cot_trace_tree && report.cot_trace_tree.raw_text) {
+        document.getElementById('cotAnalysis').innerHTML = `<div class="raw-content">${report.cot_trace_tree.raw_text.replace(/\n/g, '<br>')}</div>`;
+    } else {
+        document.getElementById('cotAnalysis').innerHTML = `<div class="raw-content">Chain of Thought analysis not available.</div>`;
+    }
+    
+    // Update recommendation
+    if (report.recommendation) {
+        const rec = report.recommendation;
+        document.getElementById('recommendation').innerHTML = `
+            <div class="recommendation-header">
+                <span class="rating ${rec.recommendation.toLowerCase()}">${rec.recommendation}</span>
+                <span class="target-price">Target: $${rec.target_price.price} (${rec.target_price.upside_percentage}% upside)</span>
+            </div>
+            <div class="confidence">
+                Confidence: <span class="confidence-level">${rec.confidence}</span>
+            </div>
+            <div class="time-horizon">
+                Time Horizon: <span>${rec.time_horizon}</span>
+            </div>
+            <div class="reasoning">
+                <h4>Justification</h4>
+                <p>${rec.justification}</p>
+                
+                <h4>Key Catalysts</h4>
+                <ul>
+                    ${rec.key_catalysts.map(catalyst => `<li>${catalyst}</li>`).join('')}
+                </ul>
+            </div>
+        `;
+    }
+    
+    // Setup download button
+    document.getElementById('downloadReportBtn').onclick = () => downloadEnhancedReport(result, symbol);
+    renderVisualAnalytics(report, symbol);
+}
+
+async function downloadEnhancedReport(result, symbol) {
+    try {
+        const response = await fetch('/api/research/enhanced-report-pdf', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+                symbol: symbol,
+                query: result.research_report.query || `Provide a comprehensive investment analysis for ${symbol}`
+            })
+        });
+        
+        if (response.ok) {
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AGENSTOCK_Enhanced_Research_${symbol}_${new Date().toISOString().split('T')[0]}.pdf`;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+        } else {
+            throw new Error('Failed to generate enhanced report');
+        }
+    } catch (error) {
+        alert('Download failed: ' + error.message);
+    }
+}
+
+function renderVisualAnalytics(report, symbol) {
+    const level4Content = document.getElementById('level4Content');
+    // If the full report contains an 'enhanced' payload, use it. Otherwise use report.research
+    const enhanced = (report && report.enhanced) ? report.enhanced : (report.research || report);
+
+    async function drawCharts(payload) {
+        try {
+            const ohlc = payload.ohlc || [];
+            const chartSeries = payload.chart_series || [];
+            const indicators = payload.indicators || {};
+
+            if (!ohlc.length && chartSeries.length) {
+                // build a simple OHLC from chart_series (close-only)
+                for (let i=0;i<chartSeries.length;i++) {
+                    const p = chartSeries[i];
+                    ohlc.push({date: p.date, open: p.close, high: p.close, low: p.close, close: p.close, volume: 0});
+                }
+            }
+
+            if (!ohlc.length) {
+                level4Content.innerHTML = '<p>No chart data available for this symbol.</p>';
+                return;
+            }
+
+            // Prepare arrays
+            const dates = ohlc.map(d => d.date);
+            const opens = ohlc.map(d => d.open);
+            const highs = ohlc.map(d => d.high);
+            const lows = ohlc.map(d => d.low);
+            const closes = ohlc.map(d => d.close);
+            const volumes = ohlc.map(d => d.volume || 0);
+
+            level4Content.innerHTML = `
+                <div id="candlestickChart" style="height:420px"></div>
+                <div id="macdChart" style="height:220px"></div>
+                <div id="rsiChart" style="height:180px"></div>
+            `;
+
+            // Candlestick trace
+            const candlestick = {
+                x: dates,
+                open: opens,
+                high: highs,
+                low: lows,
+                close: closes,
+                increasing: {line: {color: '#3a86ff'}},
+                decreasing: {line: {color: '#ff6363'}},
+                type: 'candlestick',
+                name: symbol
+            };
+
+            // Volume bar trace
+            const volume = {
+                x: dates,
+                y: volumes,
+                marker: {color: '#888'},
+                type: 'bar',
+                name: 'Volume',
+                yaxis: 'y2',
+                opacity: 0.4
+            };
+
+            const layout = {
+                title: `${symbol} Candlestick + Volume (Live)`,
+                xaxis: {rangeslider: {visible: false}},
+                yaxis: {title: 'Price'},
+                yaxis2: {overlaying: 'y', side: 'right', position: 0.95, showgrid:false, title:'Volume', rangemode:'tozero', automargin:true}
+            };
+
+            const data = [candlestick, volume];
+
+            // Respect toggles and MA window inputs
+            const showSMA20 = document.getElementById('toggleSMA20') ? document.getElementById('toggleSMA20').checked : true;
+            const showSMA50 = document.getElementById('toggleSMA50') ? document.getElementById('toggleSMA50').checked : true;
+            const ma20Window = Number(document.getElementById('ma20Window') ? document.getElementById('ma20Window').value : 20);
+            const ma50Window = Number(document.getElementById('ma50Window') ? document.getElementById('ma50Window').value : 50);
+
+            if (showSMA20) {
+                // prefer server indicator if matching window else compute fallback
+                if (indicators && indicators[`sma_${ma20Window}`]) {
+                    const sma = dates.map(d => indicators[`sma_${ma20Window}`][d] || null);
+                    data.push({x: dates, y: sma, type: 'scatter', mode: 'lines', name: `SMA ${ma20Window}`, line: {dash: 'dash', color: '#ffa600'}});
+                } else if (indicators && indicators.sma_20 && ma20Window === 20) {
+                    const sma20 = dates.map(d => indicators.sma_20[d] || null);
+                    data.push({x: dates, y: sma20, type: 'scatter', mode: 'lines', name: 'SMA20', line: {dash: 'dash', color: '#ffa600'}});
+                }
+            }
+            if (showSMA50) {
+                if (indicators && indicators[`sma_${ma50Window}`]) {
+                    const sma = dates.map(d => indicators[`sma_${ma50Window}`][d] || null);
+                    data.push({x: dates, y: sma, type: 'scatter', mode: 'lines', name: `SMA ${ma50Window}`, line: {dash: 'dot', color: '#8338ec'}});
+                } else if (indicators && indicators.sma_50 && ma50Window === 50) {
+                    const sma50 = dates.map(d => indicators.sma_50[d] || null);
+                    data.push({x: dates, y: sma50, type: 'scatter', mode: 'lines', name: 'SMA50', line: {dash: 'dot', color: '#8338ec'}});
+                }
+            }
+
+            // Restore saved zoom/pan state if available
+            const storageKey = `zoom_${symbol}`;
+            const savedLayout = window.localStorage.getItem(storageKey);
+            const plotLayout = savedLayout ? Object.assign({}, layout, JSON.parse(savedLayout)) : layout;
+            Plotly.newPlot('candlestickChart', data, plotLayout, {responsive:true});
+            // Save relayout (zoom/pan) to localStorage
+            const candlestickEl = document.getElementById('candlestickChart');
+            candlestickEl.on('plotly_relayout', (ev) => {
+                try {
+                    // store only xaxis range and autorange flags
+                    const state = {};
+                    if (ev['xaxis.range[0]'] || ev['xaxis.range']) {
+                        state.xaxis = ev['xaxis.range'] || [ev['xaxis.range[0]'], ev['xaxis.range[1]']];
+                    }
+                    if (ev['yaxis.range[0]'] || ev['yaxis.range']) {
+                        state.yaxis = ev['yaxis.range'] || [ev['yaxis.range[0]'], ev['yaxis.range[1]']];
+                    }
+                    window.localStorage.setItem(storageKey, JSON.stringify({xaxis: state.xaxis, yaxis: state.yaxis}));
+                } catch (e) { /* ignore storage errors */ }
+            });
+
+            // Export PNG button
+            const exportBtn = document.getElementById('exportChartBtn');
+            if (exportBtn) {
+                exportBtn.onclick = async () => {
+                    try {
+                        // export candlestickChart as PNG using Plotly
+                        const pngData = await Plotly.toImage(document.getElementById('candlestickChart'), {format:'png', width:1200, height:700, scale:2});
+                        const a = document.createElement('a');
+                        a.href = pngData;
+                        a.download = `${symbol}_charts_${new Date().toISOString().split('T')[0]}.png`;
+                        document.body.appendChild(a);
+                        a.click();
+                        a.remove();
+                    } catch (err) {
+                        console.error('Export failed', err);
+                        alert('Chart export failed.');
+                    }
+                };
+            }
+
+            // MACD
+            const macd_map = payload.macd || {};
+            const macd_signal = payload.macd_signal || {};
+            const macd_vals = dates.map(d => macd_map[d] || null);
+            const macd_sig_vals = dates.map(d => macd_signal[d] || null);
+            const macdData = [
+                {x: dates, y: macd_vals, type: 'scatter', mode: 'lines', name: 'MACD', line:{color:'#ff7f0e'}},
+                {x: dates, y: macd_sig_vals, type: 'scatter', mode: 'lines', name: 'Signal', line:{color:'#1f77b4'}}
+            ];
+            Plotly.newPlot('macdChart', macdData, {title: 'MACD (12,26,9)'}, {responsive:true});
+
+            // RSI
+            // Try build RSI from indicators.rsi_14 if present
+            const rsi_map = indicators && indicators.rsi_14 ? indicators.rsi_14 : null;
+            let rsi_vals = [];
+            if (rsi_map) {
+                rsi_vals = dates.map(d => rsi_map[d] || null);
+            } else {
+                // compute from closes
+                const closes_num = closes.map(v => Number(v));
+                const deltas = [];
+                for (let i=1;i<closes_num.length;i++) deltas.push(closes_num[i]-closes_num[i-1]);
+                const rsiArr = [];
+                let up=0, down=0;
+                for (let i=0;i<deltas.length;i++) {
+                    const d = deltas[i];
+                    up = (up*(13) + Math.max(d,0))/14;
+                    down = (down*(13) + Math.max(-d,0))/14;
+                    const rs = down===0?100:(up/down);
+                    const rsi = 100 - (100 / (1 + rs));
+                    rsiArr.push(rsi);
+                }
+                rsi_vals = [null].concat(rsiArr);
+            }
+            Plotly.newPlot('rsiChart', [{x: dates, y: rsi_vals, type:'scatter', mode:'lines', name:'RSI', line:{color:'#8a2be2'}}], {title:'RSI (14)', yaxis:{range:[0,100]}}, {responsive:true});
+        } catch (err) {
+            console.error('Error drawing charts', err);
+            level4Content.innerHTML = '<p>Error rendering charts.</p>';
+        }
+    }
+
+    // Initial draw if enhanced payload present
+    if (enhanced) {
+        drawCharts(enhanced);
+    }
+
+    // Polling to refresh visuals every 15s using auth then public fallback
+    let pollInterval = window.enhancedPollInterval;
+    if (pollInterval) clearInterval(pollInterval);
+    window.enhancedPollInterval = setInterval(async () => {
+        try {
+            const payload = await postJsonAutoAuth('/api/research/enhanced', '/api/research/enhanced-public', { symbol: symbol, timeframe: document.getElementById('timeframe').value || '1y' });
+            if (payload && payload.research) drawCharts(payload.research);
+        } catch (e) {
+            console.warn('Enhanced polling failed', e);
+        }
+    }, 15000);
+}
+</script>
+
+<style>
+.research-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.research-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.research-header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+    margin-top: 2.5rem;
+}
+
+.input-card {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 2rem;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.research-results {
+    background: white;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    padding: 2rem;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.report-section {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    color: var(--dark-color);
+}
+
+/* Multi-level output styles */
+.multi-level-container {
+    border: 1px solid #e9ecef;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+.level-tab-container {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.level-tab {
+    padding: 1rem 1.5rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.level-tab:hover {
+    background: #e9ecef;
+}
+
+.level-tab.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.level-content {
+    display: none;
+    padding: 1.5rem;
+}
+
+.level-content.active {
+    display: block;
+}
+
+/* Metrics grid */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.metric-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.metric-name {
+    font-size: 0.8rem;
+    color: var(--gray-color);
+    margin-bottom: 0.5rem;
+}
+
+.metric-value {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+/* Growth potential styles */
+.growth-metrics {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.growth-metric-card {
+    flex: 1;
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.growth-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--primary-color);
+}
+
+.growth-table, .peer-table, .trend-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1.5rem;
+}
+
+.growth-table th, .peer-table th, .trend-table th,
+.growth-table td, .peer-table td, .trend-table td {
+    padding: 0.75rem;
+    border: 1px solid #e9ecef;
+    text-align: center;
+}
+
+.growth-table th, .peer-table th, .trend-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.trend {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.trend.up, .trend.positive, .trend.increasing {
+    background: #d4edda;
+    color: #155724;
+}
+
+.trend.down, .trend.negative, .trend.decreasing {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.trend.stable, .trend.neutral {
+    background: #fff3cd;
+    color: #856404;
+}
+
+/* Risk assessment styles */
+.risk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.risk-card {
+    padding: 1rem;
+    border-radius: 8px;
+    text-align: center;
+}
+
+.risk-card.high {
+    background: #f8d7da;
+}
+
+.risk-card.medium {
+    background: #fff3cd;
+}
+
+.risk-card.low {
+    background: #d4edda;
+}
+
+.risk-category {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+/* CoT styles */
+.cot-tree {
+    margin-bottom: 1.5rem;
+}
+
+.cot-point {
+    margin-bottom: 1rem;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.cot-point-header {
+    padding: 1rem;
+    background: #f8f9fa;
+    font-weight: 600;
+}
+
+.cot-evidence {
+    padding: 1rem;
+}
+
+/* Recommendation styles */
+.recommendation-card {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+}
+
+.recommendation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.rating {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    color: white;
+}
+
+.rating.buy {
+    background: var(--success-color);
+}
+
+.rating.hold {
+    background: var(--warning-color);
+}
+
+.rating.sell {
+    background: var(--danger-color);
+}
+
+.confidence, .time-horizon {
+    margin-bottom: 1rem;
+}
+
+.confidence-level {
+    font-weight: 600;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.loading-content {
+    background: white;
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    text-align: center;
+    max-width: 500px;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+.loading-steps {
+    margin-top: 1.5rem;
+}
+
+.step {
+    padding: 0.5rem;
+    margin: 0.25rem 0;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.step.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Visual analytics */
+.chart-container {
+    height: 300px;
+    margin-bottom: 1.5rem;
+}
+
+.chart-placeholder {
+    border: 2px dashed #e9ecef;
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    color: var(--gray-color);
+    margin-bottom: 1rem;
+}
+
+.chart-placeholder i {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .growth-metrics {
+        flex-direction: column;
+    }
+    
+    .recommendation-header {
+        flex-direction: column;
+        gap: 1rem;
+    }
+}
+</style>
+{% endblock %}
