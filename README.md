@@ -1,6 +1,33 @@
+# AGENSTOCK 
+
+Version: 1.0.0
+
+
 # AGENSTOCK — AI Stock Research Agent
 
-Comprehensive developer README. This file documents the project, architecture, folder layout, files, imports, design patterns, security, and how to run and extend the system.
+Key features (user-facing)
+
+- Conversational AI Research Agent
+  - Ask about any stock or portfolio in natural language.
+  - Receive multi-level summaries, investment theses, and risk annotations.
+
+- Enhanced Research Reports
+  - Multi-source data synthesis, narrative explanations, and recommended actions.
+  - Downloadable PDF reports with embedded high-resolution charts and captions.
+
+- Interactive Visual Analytics
+  - Candlestick charts, SMA (various windows), RSI, MACD, Bollinger Bands overlays.
+  - Toggle indicators on/off, zoom/pan with state persistence, and export charts as PNG.
+
+- Portfolio Tracking & Insights
+  - Manage holdings, view allocation breakdown, and receive AI-powered rebalancing suggestions.
+
+- Stock Comparison
+  - Compare multiple tickers side-by-side with aggregated metrics and sentiment analysis.
+
+- Privacy-first Design
+  - Focus on user data protection; features built with the principle of least privilege for user data.
+
 
 ---
 
