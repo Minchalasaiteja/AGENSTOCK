@@ -8,7 +8,7 @@ Comprehensive developer README. This file documents the project, architecture, f
 
 AGENSTOCK is a conversational AI-driven stock research application built with FastAPI and Jinja2 templates. It aggregates market and fundamental data, computes technical indicators, synthesizes insights with LLMs, and produces interactive charts and printable PDF research reports.
 
-This README contains a full reference for developers: features, file maps, module responsibilities, configuration, architecture diagrams, and step-by-step setup instructions for Windows.
+
 
 
 ## About the project
@@ -239,7 +239,7 @@ Version: 1.0.0
 11. Production deployment notes
 12. Troubleshooting and common issues
 13. Contributing
-14. License
+
 
 ---
 
