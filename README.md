@@ -1,3 +1,10 @@
+<img width="1536" height="1024" alt="Agenstock" src="https://github.com/user-attachments/assets/e377513f-dcd3-456d-b5ca-21b12c7139ee" />
+
+
+
+
+
+
 # AGENSTOCK 
 
 Version: 1.0.0
