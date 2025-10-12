@@ -63,7 +63,7 @@ Key features (user-facing)
 - Data processing: pandas, numpy
 - External data providers: yfinance, AlphaVantage, IndStock (for IN market), etc.
 
-## Full feature list (user-facing)
+##  Features
 
 - Conversational Research Agent (chat)
 - Enhanced Research (multi-source aggregation + LLM summaries)
