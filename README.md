@@ -1,5 +1,8 @@
 
-<img width="650" height="850" alt="AGENSTOCK LOGo" src="https://github.com/user-attachments/assets/b7848135-e549-4d88-bc10-6c40ac686ca8" />
+<p align="center">
+  <img width="450" height="450" alt="AGENSTOCK LOGo" src="https://github.com/user-attachments/assets/b7848135-e549-4d88-bc10-6c40ac686ca8" />
+</p>
+
 
 
 
@@ -11,7 +14,7 @@
 # AGENSTOCK 
 
 Version: 1.0.0
-<img width="1200" height="800" alt="Agenstock" src="https://github.com/user-attachments/assets/e377513f-dcd3-456d-b5ca-21b12c7139ee" />
+<img width="1000" height="600" alt="Agenstock" src="https://github.com/user-attachments/assets/e377513f-dcd3-456d-b5ca-21b12c7139ee" />
 
 ## Introduction
 
@@ -439,21 +442,7 @@ Notes:
 
 For questions or help setting up the project, open an issue or contact the maintainers.
 
-## Appendix: Screenshots, Diagrams and Examples
 
-### Screenshot placeholders
-Below are recommended screenshots to include in the final README repository (place files under `docs/screenshots/` and update paths):
-
-- `docs/screenshots/landing.png` — Landing hero and features
-- `docs/screenshots/enhanced_research_chart.png` — Enhanced Research chart with overlays
-- `docs/screenshots/report_preview.png` — Generated PDF preview (two-column charts)
-
-Example Markdown embed:
-
-```
-![Landing](/docs/screenshots/landing.png)
-![Enhanced Chart](/docs/screenshots/enhanced_research_chart.png)
-![PDF Preview](/docs/screenshots/report_preview.png)
 ```
 
 ### Detailed architecture diagram (ASCII)
@@ -501,7 +490,7 @@ Set environment variables (example for Windows `cmd.exe`):
 set ALPHAVANTAGE_KEY_1=your_key_here
 set ALPHAVANTAGE_KEY_2=your_key_here
 set ENHANCED_CACHE_TTL=60
-set DATABASE_URL=sqlite:///./data.db
+set DATABASE_URL=
 ```
 
 For a `.env` file (used by `python-dotenv`):
